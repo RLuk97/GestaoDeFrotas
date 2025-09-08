@@ -81,13 +81,71 @@ const initialState = {
       id: 1,
       name: 'João Silva',
       phone: '(11) 99999-9999',
-      email: 'joao@email.com'
+      email: 'joao@email.com',
+      document: '123.456.789-00',
+      address: 'Rua das Flores, 123',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01234-567',
+      status: 'active',
+      notes: 'Cliente desde 2020, sempre pontual nos pagamentos',
+      createdAt: '2020-03-15T10:00:00.000Z'
     },
     {
       id: 2,
       name: 'Maria Santos',
       phone: '(11) 88888-8888',
-      email: 'maria@email.com'
+      email: 'maria@email.com',
+      document: '987.654.321-00',
+      address: 'Av. Paulista, 456',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01310-100',
+      status: 'active',
+      notes: 'Possui frota de 3 veículos',
+      createdAt: '2021-07-22T14:30:00.000Z'
+    },
+    {
+      id: 3,
+      name: 'Carlos Oliveira',
+      phone: '(11) 77777-7777',
+      email: 'carlos@email.com',
+      document: '456.789.123-00',
+      address: 'Rua Augusta, 789',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01305-000',
+      status: 'active',
+      notes: 'Prefere agendamentos pela manhã',
+      createdAt: '2022-01-10T09:15:00.000Z'
+    },
+    {
+      id: 4,
+      name: 'Ana Costa',
+      phone: '(11) 66666-6666',
+      email: 'ana@email.com',
+      document: '321.654.987-00',
+      address: 'Rua Oscar Freire, 321',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01426-001',
+      status: 'active',
+      notes: 'Cliente VIP, desconto especial',
+      createdAt: '2023-05-18T16:45:00.000Z'
+    },
+    {
+      id: 5,
+      name: 'Roberto Lima',
+      phone: '(11) 55555-5555',
+      email: 'roberto@email.com',
+      document: '789.123.456-00',
+      address: 'Rua Consolação, 654',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01302-907',
+      status: 'inactive',
+      notes: 'Cliente inativo desde dezembro/2023',
+      createdAt: '2019-11-03T11:20:00.000Z'
     }
   ],
   services: [

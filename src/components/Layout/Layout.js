@@ -8,7 +8,8 @@ import {
   Package,
   History,
   Settings,
-  LayoutDashboard
+  LayoutDashboard,
+  Users
 } from 'lucide-react';
 import Breadcrumb from '../Common/Breadcrumb';
 
@@ -22,6 +23,12 @@ const Layout = ({ children }) => {
       href: '/dashboard',
       icon: LayoutDashboard,
       current: location.pathname === '/' || location.pathname === '/dashboard'
+    },
+    {
+      name: 'Clientes',
+      href: '/clients',
+      icon: Users,
+      current: location.pathname.startsWith('/clients')
     },
     {
       name: 'Veículos',

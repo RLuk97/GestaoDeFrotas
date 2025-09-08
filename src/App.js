@@ -7,6 +7,7 @@ import Vehicles from './pages/Vehicles';
 import Services from './pages/Services';
 import Parts from './pages/Parts';
 import History from './pages/History';
+import Clients from './pages/Clients';
 import VehicleDetails from './pages/VehicleDetails';
 import ServiceDetails from './pages/ServiceDetails';
 
@@ -24,6 +25,7 @@ function App() {
               <Route path="/services" element={<Services />} />
               <Route path="/services/:id" element={<ServiceDetails />} />
               <Route path="/parts" element={<Parts />} />
+              <Route path="/clients" element={<Clients />} />
               <Route path="/history" element={<History />} />
             </Routes>
           </Layout>
