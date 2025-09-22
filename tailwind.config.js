@@ -6,17 +6,26 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Paleta simplificada e harmoniosa
+        brand: {
+          'primary': '#2563EB',   // Azul principal
+          'blue': '#2563EB',      // Azul principal
+          'navy': '#1E3A8A',      // Azul marinho
+          'white': '#FFFFFF',     // Branco
+          'gray': '#6B7280',      // Cinza neutro
+          'light': '#F9FAFB',     // Cinza muito claro
+        },
         primary: {
           50: '#eff6ff',
-          100: '#dbeafe',
+          100: '#dbeafe', 
           200: '#bfdbfe',
           300: '#93c5fd',
-          400: '#60a5fa',
+          400: '#60A5FA',         // Azul claro
           500: '#3b82f6',
-          600: '#2563eb',
+          600: '#2563EB',         // Azul médio
           700: '#1d4ed8',
           800: '#1e40af',
-          900: '#1e3a8a',
+          900: '#1E3A8A',         // Azul marinho
         },
         success: {
           50: '#f0fdf4',

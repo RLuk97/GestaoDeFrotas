@@ -119,7 +119,7 @@ const ServiceDetails = () => {
               </button>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Serviço #{service.id}
+                  {service.type}
                 </h1>
                 <p className="text-gray-600 mt-1">
                   {service.type} - {vehicle?.plate}

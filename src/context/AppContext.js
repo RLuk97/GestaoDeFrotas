@@ -13,6 +13,7 @@ const initialState = {
       currentMileage: 45000,
       observations: 'Veículo em bom estado geral',
       clientId: 1,
+      status: 'active',
       lastService: {
         date: '2024-01-15',
         type: 'Revisão preventiva',
@@ -27,6 +28,7 @@ const initialState = {
       currentMileage: 32000,
       observations: 'Necessita troca de pneus em breve',
       clientId: 2,
+      status: 'maintenance',
       lastService: {
         date: '2024-01-10',
         type: 'Troca de óleo',
@@ -41,6 +43,7 @@ const initialState = {
       currentMileage: 68000,
       observations: 'Ar condicionado com problema',
       clientId: 3,
+      status: 'maintenance',
       lastService: {
         date: '2024-01-08',
         type: 'Manutenção ar condicionado',
@@ -55,6 +58,7 @@ const initialState = {
       currentMileage: 25000,
       observations: 'Veículo novo, primeira revisão',
       clientId: 4,
+      status: 'active',
       lastService: {
         date: '2024-01-12',
         type: 'Primeira revisão',
@@ -69,6 +73,7 @@ const initialState = {
       currentMileage: 38000,
       observations: 'Pneus precisam ser trocados',
       clientId: 5,
+      status: 'inactive',
       lastService: {
         date: '2024-01-05',
         type: 'Balanceamento',
@@ -146,6 +151,216 @@ const initialState = {
       status: 'inactive',
       notes: 'Cliente inativo desde dezembro/2023',
       createdAt: '2019-11-03T11:20:00.000Z'
+    },
+    {
+      id: 6,
+      name: 'Pedro Almeida',
+      phone: '(11) 44444-4444',
+      email: 'pedro@email.com',
+      document: '147.258.369-00',
+      address: 'Rua Bela Vista, 890',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01415-002',
+      status: 'active',
+      notes: 'Cliente corporativo, frota de 5 veículos',
+      createdAt: '2021-09-12T08:30:00.000Z'
+    },
+    {
+      id: 7,
+      name: 'Fernanda Souza',
+      phone: '(11) 33333-3333',
+      email: 'fernanda@email.com',
+      document: '258.369.147-00',
+      address: 'Av. Faria Lima, 1500',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01452-000',
+      status: 'active',
+      notes: 'Executiva, prefere atendimento VIP',
+      createdAt: '2022-03-25T15:20:00.000Z'
+    },
+    {
+      id: 8,
+      name: 'Ricardo Mendes',
+      phone: '(11) 22222-2222',
+      email: 'ricardo@email.com',
+      document: '369.147.258-00',
+      address: 'Rua Itaim Bibi, 750',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '04530-001',
+      status: 'active',
+      notes: 'Cliente há 3 anos, sempre satisfeito',
+      createdAt: '2021-01-18T12:45:00.000Z'
+    },
+    {
+      id: 9,
+      name: 'Juliana Pereira',
+      phone: '(11) 11111-1111',
+      email: 'juliana@email.com',
+      document: '741.852.963-00',
+      address: 'Rua Vila Madalena, 320',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '05433-000',
+      status: 'active',
+      notes: 'Jovem empreendedora, carro novo',
+      createdAt: '2023-08-10T09:15:00.000Z'
+    },
+    {
+      id: 10,
+      name: 'Marcos Ferreira',
+      phone: '(11) 99887-7665',
+      email: 'marcos@email.com',
+      document: '852.963.741-00',
+      address: 'Av. Rebouças, 1200',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '05402-100',
+      status: 'inactive',
+      notes: 'Cliente inativo, mudou-se para outro estado',
+      createdAt: '2020-11-05T14:30:00.000Z'
+    },
+    {
+      id: 11,
+      name: 'Luciana Barbosa',
+      phone: '(11) 88776-6554',
+      email: 'luciana@email.com',
+      document: '963.741.852-00',
+      address: 'Rua Moema, 450',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '04077-020',
+      status: 'active',
+      notes: 'Professora, carro econômico',
+      createdAt: '2022-06-14T11:00:00.000Z'
+    },
+    {
+      id: 12,
+      name: 'Eduardo Santos',
+      phone: '(11) 77665-5443',
+      email: 'eduardo@email.com',
+      document: '159.753.486-00',
+      address: 'Rua Jardins, 680',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01404-001',
+      status: 'active',
+      notes: 'Médico, veículo de luxo',
+      createdAt: '2021-12-08T16:20:00.000Z'
+    },
+    {
+      id: 13,
+      name: 'Camila Rodrigues',
+      phone: '(11) 66554-4332',
+      email: 'camila@email.com',
+      document: '357.159.753-00',
+      address: 'Av. Ibirapuera, 2100',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '04029-200',
+      status: 'active',
+      notes: 'Advogada, muito exigente com qualidade',
+      createdAt: '2023-02-20T13:45:00.000Z'
+    },
+    {
+      id: 14,
+      name: 'Gabriel Lima',
+      phone: '(11) 55443-3221',
+      email: 'gabriel@email.com',
+      document: '753.486.159-00',
+      address: 'Rua Pinheiros, 1800',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '05422-001',
+      status: 'active',
+      notes: 'Engenheiro, gosta de tecnologia',
+      createdAt: '2022-09-30T10:30:00.000Z'
+    },
+    {
+      id: 15,
+      name: 'Patrícia Oliveira',
+      phone: '(11) 44332-2110',
+      email: 'patricia@email.com',
+      document: '486.159.753-00',
+      address: 'Rua Brooklin, 950',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '04567-001',
+      status: 'active',
+      notes: 'Arquiteta, carro híbrido',
+      createdAt: '2023-04-15T14:10:00.000Z'
+    },
+    {
+      id: 16,
+      name: 'Thiago Martins',
+      phone: '(11) 33221-1009',
+      email: 'thiago@email.com',
+      document: '159.357.486-00',
+      address: 'Av. Santo Amaro, 3200',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '04702-000',
+      status: 'inactive',
+      notes: 'Cliente inativo, problemas financeiros',
+      createdAt: '2020-07-22T09:45:00.000Z'
+    },
+    {
+      id: 17,
+      name: 'Renata Silva',
+      phone: '(11) 22110-0998',
+      email: 'renata@email.com',
+      document: '357.486.159-00',
+      address: 'Rua Campo Belo, 1400',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '04609-003',
+      status: 'active',
+      notes: 'Dentista, sempre pontual',
+      createdAt: '2022-11-18T15:30:00.000Z'
+    },
+    {
+      id: 18,
+      name: 'Bruno Costa',
+      phone: '(11) 11009-9887',
+      email: 'bruno@email.com',
+      document: '486.357.159-00',
+      address: 'Rua Vila Olímpia, 2800',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '04551-060',
+      status: 'active',
+      notes: 'Empresário, frota comercial',
+      createdAt: '2021-05-10T12:15:00.000Z'
+    },
+    {
+      id: 19,
+      name: 'Vanessa Alves',
+      phone: '(11) 00998-8776',
+      email: 'vanessa@email.com',
+      document: '159.486.357-00',
+      address: 'Av. Berrini, 1100',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '04571-010',
+      status: 'active',
+      notes: 'Consultora, viaja muito',
+      createdAt: '2023-01-12T08:00:00.000Z'
+    },
+    {
+      id: 20,
+      name: 'André Ribeiro',
+      phone: '(11) 99887-7665',
+      email: 'andre@email.com',
+      document: '357.159.486-00',
+      address: 'Rua Morumbi, 2500',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '05650-000',
+      status: 'active',
+      notes: 'Aposentado, carro clássico',
+      createdAt: '2020-12-03T17:20:00.000Z'
     }
   ],
   services: [
@@ -324,7 +539,12 @@ function appReducer(state, action) {
     case 'ADD_SERVICE':
       return {
         ...state,
-        services: [...state.services, { ...action.payload, id: Date.now() }]
+        services: [...state.services, { ...action.payload, id: Date.now() }],
+        vehicles: state.vehicles.map(vehicle =>
+          vehicle.id === action.payload.vehicleId
+            ? { ...vehicle, status: 'maintenance' }
+            : vehicle
+        )
       };
     
     case 'UPDATE_SERVICE':

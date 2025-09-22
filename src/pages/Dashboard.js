@@ -1,59 +1,42 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import {
   Car,
   Wrench,
   AlertTriangle,
-  CheckCircle,
-  Clock,
   DollarSign,
-  TrendingUp,
-  Calendar
+  Calendar,
+  BarChart3,
+  Users
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 const Dashboard = () => {
   const { state, getServicesInProgress, getPendingPayments } = useApp();
-  
+  const navigate = useNavigate();
+
+  const handleAddVehicle = () => {
+    navigate('/vehicles?openModal=true');
+  };
+
+  const handleAddService = () => {
+    navigate('/services?openModal=true');
+  };
+
+  // Cálculos para métricas
   const servicesInProgress = getServicesInProgress();
   const pendingPayments = getPendingPayments();
   const totalRevenue = state.services
     .filter(s => s.paymentStatus === 'paid')
     .reduce((sum, s) => sum + s.totalValue, 0);
-  const pendingRevenue = pendingPayments.reduce((sum, s) => sum + s.totalValue, 0);
 
-  const stats = [
-    {
-      name: 'Total de Veículos',
-      value: state.vehicles.length,
-      icon: Car,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
-    },
-    {
-      name: 'Serviços em Andamento',
-      value: servicesInProgress.length,
-      icon: Wrench,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-100'
-    },
-    {
-      name: 'Pagamentos Pendentes',
-      value: pendingPayments.length,
-      icon: AlertTriangle,
-      color: 'text-red-600',
-      bgColor: 'bg-red-100'
-    },
-    {
-      name: 'Receita do Mês',
-      value: `R$ ${totalRevenue.toFixed(2)}`,
-      icon: DollarSign,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
-    }
-  ];
+  const maintenanceAlerts = state.vehicles.filter(v => {
+    if (!v.nextMaintenance) return false;
+    const nextMaintenance = new Date(v.nextMaintenance);
+    const today = new Date();
+    const diffDays = Math.ceil((nextMaintenance - today) / (1000 * 60 * 60 * 24));
+    return diffDays <= 30 && diffDays >= 0;
+  }).length;
 
   const recentServices = state.services
     .sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate))
@@ -62,193 +45,204 @@ const Dashboard = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'paid':
-        return <span className="status-paid">✅ Pago</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">PAGO</span>;
       case 'pending':
-        return <span className="status-pending">⚠️ Pendente</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">PENDENTE</span>;
       case 'partial':
-        return <span className="status-partial">💸 Parcial</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">PARCIAL</span>;
       default:
-        return <span className="status-pending">⚠️ Pendente</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">PENDENTE</span>;
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Visão geral do sistema de gestão de frota</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.name} className="card p-6">
-              <div className="flex items-center">
-                <div className={`flex-shrink-0 p-3 rounded-lg ${stat.bgColor}`}>
-                  <Icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Cards de estatísticas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Total de Veículos */}
+          <div className="bg-white rounded-lg shadow p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:bg-blue-50 cursor-pointer group">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Car className="h-8 w-8 text-blue-600 transition-all duration-300 group-hover:scale-110 group-hover:text-blue-700" />
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Serviços em Andamento */}
-        <div className="card">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Serviços em Andamento</h2>
-              <Link
-                to="/services"
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-              >
-                Ver todos
-              </Link>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate transition-colors duration-300 group-hover:text-blue-700">
+                    Total de Veículos
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900 transition-colors duration-300 group-hover:text-blue-800">
+                    {state.vehicles.length}
+                  </dd>
+                  <dd className="text-sm text-gray-500 transition-colors duration-300 group-hover:text-blue-600">
+                    {state.vehicles.filter(v => v.status === 'active').length} ativos
+                  </dd>
+                </dl>
+              </div>
             </div>
           </div>
-          <div className="p-6">
-            {servicesInProgress.length === 0 ? (
-              <div className="text-center py-8">
-                <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                <p className="text-gray-500">Nenhum serviço em andamento</p>
+
+          {/* Serviços em Andamento */}
+          <div className="bg-white rounded-lg shadow p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:bg-yellow-50 cursor-pointer group">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Wrench className="h-8 w-8 text-yellow-600 transition-all duration-300 group-hover:scale-110 group-hover:text-yellow-700" />
               </div>
-            ) : (
-              <div className="space-y-4">
-                {servicesInProgress.slice(0, 3).map((service) => {
-                  const vehicle = state.vehicles.find(v => v.id === service.vehicleId);
-                  return (
-                    <div key={service.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">{vehicle?.plate}</p>
-                        <p className="text-sm text-gray-600">{service.type}</p>
-                        <p className="text-xs text-gray-500">
-                          Entrada: {format(new Date(service.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">R$ {service.totalValue.toFixed(2)}</p>
-                        {getStatusBadge(service.paymentStatus)}
-                      </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate transition-colors duration-300 group-hover:text-yellow-700">
+                    Serviços em Andamento
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900 transition-colors duration-300 group-hover:text-yellow-800">
+                    {servicesInProgress.length}
+                  </dd>
+                  <dd className="text-sm text-gray-500 transition-colors duration-300 group-hover:text-yellow-600">
+                    Em execução
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          {/* Alertas de Manutenção */}
+          <div className="bg-white rounded-lg shadow p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:bg-red-50 cursor-pointer group">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <AlertTriangle className="h-8 w-8 text-red-600 transition-all duration-300 group-hover:scale-110 group-hover:text-red-700" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate transition-colors duration-300 group-hover:text-red-700">
+                    Alertas de Manutenção
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900 transition-colors duration-300 group-hover:text-red-800">
+                    {maintenanceAlerts}
+                  </dd>
+                  <dd className="text-sm text-gray-500 transition-colors duration-300 group-hover:text-red-600">
+                    Próximos 30 dias
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          {/* Receita do Mês */}
+          <div className="bg-white rounded-lg shadow p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:bg-green-50 cursor-pointer group">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <DollarSign className="h-8 w-8 text-green-600 transition-all duration-300 group-hover:scale-110 group-hover:text-green-700" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate transition-colors duration-300 group-hover:text-green-700">
+                    Receita do Mês
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900 transition-colors duration-300 group-hover:text-green-800">
+                    R$ 1240,00
+                  </dd>
+                  <dd className="text-sm text-gray-500 transition-colors duration-300 group-hover:text-green-600">
+                    3 pendentes
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Layout em duas colunas */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Ações Rápidas */}
+          <div>
+            <div className="bg-white rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">Ações Rápidas</h3>
+              </div>
+              <div className="p-6 space-y-4">
+                <button
+                  onClick={handleAddVehicle}
+                  className="w-full flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-left"
+                >
+                  <div className="flex items-center">
+                    <Car className="h-6 w-6 text-blue-600 mr-3" />
+                    <div>
+                      <div className="text-sm font-medium text-blue-900">Cadastrar Veículo</div>
+                      <div className="text-xs text-blue-700">Adicionar novo veículo</div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
+                  </div>
+                </button>
 
-        {/* Pagamentos Pendentes */}
-        <div className="card">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Pagamentos Pendentes</h2>
-              <span className="text-sm text-red-600 font-medium">
-                R$ {pendingRevenue.toFixed(2)}
-              </span>
+                <button
+                  onClick={handleAddService}
+                  className="w-full flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg hover:bg-yellow-100 transition-colors text-left"
+                >
+                  <div className="flex items-center">
+                    <Wrench className="h-6 w-6 text-yellow-600 mr-3" />
+                    <div>
+                      <div className="text-sm font-medium text-yellow-900">Agendar Manutenção</div>
+                      <div className="text-xs text-yellow-700">Nova manutenção</div>
+                    </div>
+                  </div>
+                </button>
+
+                <Link
+                  to="/history"
+                  className="w-full flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors text-left"
+                >
+                  <div className="flex items-center">
+                    <BarChart3 className="h-6 w-6 text-purple-600 mr-3" />
+                    <div>
+                      <div className="text-sm font-medium text-purple-900">Relatórios</div>
+                      <div className="text-xs text-purple-700">Análises e dados</div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
             </div>
           </div>
-          <div className="p-6">
-            {pendingPayments.length === 0 ? (
-              <div className="text-center py-8">
-                <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                <p className="text-gray-500">Todos os pagamentos em dia</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {pendingPayments.slice(0, 3).map((service) => {
-                  const vehicle = state.vehicles.find(v => v.id === service.vehicleId);
-                  return (
-                    <div key={service.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">{vehicle?.plate}</p>
-                        <p className="text-sm text-gray-600">{service.type}</p>
-                        <p className="text-xs text-gray-500">
-                          {format(new Date(service.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-red-600">R$ {service.totalValue.toFixed(2)}</p>
-                        {getStatusBadge(service.paymentStatus)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Serviços Recentes */}
-      <div className="card">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Serviços Recentes</h2>
-            <Link
-              to="/services"
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Ver histórico completo
-            </Link>
-          </div>
-        </div>
-        <div className="overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Veículo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Serviço
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Data
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Valor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {recentServices.map((service) => {
-                const vehicle = state.vehicles.find(v => v.id === service.vehicleId);
-                return (
-                  <tr key={service.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{vehicle?.plate}</p>
-                        <p className="text-sm text-gray-500">{vehicle?.brand} {vehicle?.model}</p>
+          {/* Atividades Recentes */}
+          <div>
+            <div className="bg-white rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">Atividades Recentes</h3>
+                <Link to="/services" className="text-sm text-blue-600 hover:text-blue-800">
+                  Ver todas
+                </Link>
+              </div>
+              <div className="p-6">
+                {recentServices.length > 0 ? (
+                  <div className="space-y-4">
+                    {recentServices.map((service, index) => (
+                      <div key={service.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <Wrench className="h-5 w-5 text-gray-400" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {service.description || `${service.type} - ${service.vehicleId}`}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {service.clientName || 'Cliente'} • R$ {service.totalValue?.toFixed(2) || '0,00'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-500">
+                            {new Date(service.entryDate).toLocaleDateString('pt-BR')}
+                          </span>
+                          {getStatusBadge(service.paymentStatus)}
+                        </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <p className="text-sm text-gray-900">{service.type}</p>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {format(new Date(service.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      R$ {service.totalValue.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(service.paymentStatus)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Wrench className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">Nenhum serviço encontrado</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

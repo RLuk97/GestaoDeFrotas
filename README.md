@@ -36,12 +36,34 @@ Sistema completo para gestão de frotas e controle financeiro de oficinas automo
 
 ## 🛠️ Tecnologias Utilizadas
 
+### Frontend
 - **React 18** - Biblioteca JavaScript para interfaces
 - **React Router DOM** - Roteamento e navegação
 - **Tailwind CSS** - Framework CSS utilitário
 - **Lucide React** - Biblioteca de ícones
 - **Date-fns** - Manipulação de datas
 - **Context API** - Gerenciamento de estado global
+
+### Backend (Planejado)
+- **Node.js** - Runtime JavaScript para servidor
+- **Express.js** - Framework web minimalista e flexível
+- **JWT (JSON Web Tokens)** - Autenticação e autorização
+- **Bcrypt** - Criptografia de senhas
+- **Multer** - Upload de arquivos
+- **Cors** - Controle de acesso entre origens
+- **Helmet** - Segurança HTTP
+
+### Banco de Dados (Planejado)
+- **PostgreSQL** - Banco de dados relacional robusto
+- **Prisma ORM** - Object-Relational Mapping moderno
+- **Redis** - Cache em memória para sessões e dados temporários
+
+### DevOps & Deploy (Planejado)
+- **Vercel** - Deploy do frontend React
+- **Railway** - Deploy do backend Node.js
+- **Docker** - Containerização da aplicação backend
+- **PM2** - Gerenciador de processos Node.js
+- **SSL/TLS** - Certificados de segurança automáticos
 
 ## 📦 Instalação
 
@@ -252,7 +274,7 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 - **Desenvolvedor Principal**: [Seu Nome]
 - **UI/UX Design**: Sistema próprio com Tailwind CSS
-- **Arquitetura**: React + Context API
+- **Arquitetura**: React (Frontend) + Node.js/Express (Backend) + PostgreSQL (Database)
 
 ## 📞 Suporte
 
@@ -263,4 +285,4 @@ Para suporte e dúvidas:
 
 ---
 
-**Desenvolvido com ❤️ para otimizar a gestão de frotas e oficinas automotivas.**
+**Desenvolvido para otimizar a gestão de frotas e oficinas automotivas.**

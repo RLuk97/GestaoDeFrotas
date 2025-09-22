@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import {
   Plus,
@@ -22,6 +22,7 @@ import Modal from '../components/Common/Modal';
 
 const Services = () => {
   const { state, dispatch, getVehicleById } = useApp();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -29,20 +30,43 @@ const Services = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  // Filtrar serviços
-  const filteredServices = state.services.filter(service => {
-    const vehicle = getVehicleById(service.vehicleId);
-    const matchesSearch = 
-      service.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle?.plate.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || service.paymentStatus === statusFilter;
-    const matchesVehicle = vehicleFilter === 'all' || service.vehicleId === parseInt(vehicleFilter);
-    
-    return matchesSearch && matchesStatus && matchesVehicle;
-  });
+  // Detectar parâmetro openModal na URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get('openModal') === 'true') {
+      handleAddService();
+    }
+  }, [location]);
+
+  // Filtrar e ordenar serviços
+  const filteredServices = state.services
+    .filter(service => {
+      const vehicle = getVehicleById(service.vehicleId);
+      const matchesSearch = 
+        service.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vehicle?.plate.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' || service.paymentStatus === statusFilter;
+      const matchesVehicle = vehicleFilter === 'all' || service.vehicleId === parseInt(vehicleFilter);
+      
+      return matchesSearch && matchesStatus && matchesVehicle;
+    })
+    .sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate)); // Ordenar por data mais recente
+
+  // Lógica de paginação
+  const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedServices = filteredServices.slice(startIndex, endIndex);
+
+  // Reset página quando filtros mudam
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, vehicleFilter]);
 
   const handleAddService = () => {
     setEditingService(null);
@@ -65,6 +89,14 @@ const Services = () => {
     }
     setShowForm(false);
     setEditingService(null);
+    
+    // Reset filtros para mostrar todos os serviços após adicionar/editar
+    setVehicleFilter('all');
+    setStatusFilter('all');
+    setSearchTerm('');
+    
+    // Limpar parâmetros da URL
+    window.history.replaceState({}, document.title, window.location.pathname);
   };
 
   const handlePaymentStatusChange = (serviceId, newStatus) => {
@@ -128,30 +160,27 @@ const Services = () => {
     paid: filteredServices.filter(s => s.paymentStatus === 'paid').length,
     pending: filteredServices.filter(s => s.paymentStatus === 'pending').length,
     partial: filteredServices.filter(s => s.paymentStatus === 'partial').length,
-    totalRevenue: filteredServices.reduce((sum, s) => sum + s.totalValue, 0),
-    paidRevenue: filteredServices.filter(s => s.paymentStatus === 'paid').reduce((sum, s) => sum + s.totalValue, 0)
+    totalRevenue: filteredServices.reduce((sum, s) => sum + (s.totalValue || 0), 0),
+    paidRevenue: filteredServices.filter(s => s.paymentStatus === 'paid').reduce((sum, s) => sum + (s.totalValue || 0), 0)
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestão de Serviços</h1>
-          <p className="text-gray-600">Controle de serviços e pagamentos</p>
-        </div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-brand-navy">Gestão de Serviços</h1>
         <button
           onClick={handleAddService}
-          className="btn-primary flex items-center mt-4 sm:mt-0"
+          className="bg-brand-blue hover:bg-brand-navy text-brand-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
         >
           <Plus className="h-4 w-4 mr-2" />
           Novo Serviço
         </button>
       </div>
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-4">
+      {/* Cards de Estatísticas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="card p-4 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <Wrench className="h-8 w-8 text-blue-600" />
             <div className="ml-3">
@@ -160,7 +189,7 @@ const Services = () => {
             </div>
           </div>
         </div>
-        <div className="card p-4">
+        <div className="card p-4 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <CheckCircle className="h-8 w-8 text-green-600" />
             <div className="ml-3">
@@ -169,7 +198,7 @@ const Services = () => {
             </div>
           </div>
         </div>
-        <div className="card p-4">
+        <div className="card p-4 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <Clock className="h-8 w-8 text-yellow-600" />
             <div className="ml-3">
@@ -178,7 +207,7 @@ const Services = () => {
             </div>
           </div>
         </div>
-        <div className="card p-4">
+        <div className="card p-4 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <DollarSign className="h-8 w-8 text-green-600" />
             <div className="ml-3">
@@ -189,49 +218,17 @@ const Services = () => {
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="card p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
-          {/* Busca */}
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Buscar por tipo de serviço, descrição ou placa..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field pl-10"
-              />
-            </div>
-          </div>
-
-          {/* Filtros */}
-          <div className="flex space-x-4">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="input-field min-w-[120px]"
-            >
-              <option value="all">Todos Status</option>
-              <option value="paid">Pagos</option>
-              <option value="pending">Pendentes</option>
-              <option value="partial">Parciais</option>
-            </select>
-
-            <select
-              value={vehicleFilter}
-              onChange={(e) => setVehicleFilter(e.target.value)}
-              className="input-field min-w-[150px]"
-            >
-              <option value="all">Todos Veículos</option>
-              {state.vehicles.map(vehicle => (
-                <option key={vehicle.id} value={vehicle.id}>
-                  {vehicle.plate} - {vehicle.brand} {vehicle.model}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* Barra de Pesquisa */}
+      <div className="mb-6">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Buscar por tipo de serviço, descrição ou placa..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+          />
+          <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
         </div>
       </div>
 
@@ -260,8 +257,9 @@ const Services = () => {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -285,7 +283,7 @@ const Services = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredServices
+                {paginatedServices
                   .sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate))
                   .map((service) => {
                     const vehicle = getVehicleById(service.vehicleId);
@@ -303,7 +301,6 @@ const Services = () => {
                         <td className="px-6 py-4">
                           <div>
                             <p className="text-sm font-medium text-gray-900">{service.type}</p>
-                            <p className="text-sm text-gray-500">{service.description}</p>
                             <p className="text-xs text-gray-400">{service.mileage?.toLocaleString()} km</p>
                           </div>
                         </td>
@@ -359,9 +356,79 @@ const Services = () => {
                       </tr>
                     );
                   })}
-              </tbody>
-            </table>
-          </div>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Paginação */}
+            {totalPages > 1 && (
+              <div className="bg-brand-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div className="flex-1 flex justify-between sm:hidden">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Próxima
+                  </button>
+                </div>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      Mostrando <span className="font-medium">{startIndex + 1}</span> a{' '}
+                      <span className="font-medium">{Math.min(endIndex, filteredServices.length)}</span> de{' '}
+                      <span className="font-medium">{filteredServices.length}</span> resultados
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                      <button
+                        onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                      
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                            page === currentPage
+                              ? 'z-10 bg-brand-blue border-brand-blue text-white'
+                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                          }`}
+                          style={{ minWidth: '40px' }}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                      
+                      <button
+                        onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -382,7 +449,10 @@ const Services = () => {
             setShowForm(false);
             setEditingService(null);
           }}
-          preselectedVehicleId={vehicleFilter !== 'all' ? parseInt(vehicleFilter) : null}
+          preselectedVehicleId={
+            vehicleFilter !== 'all' ? parseInt(vehicleFilter) : 
+            (searchParams.get('vehicle') ? parseInt(searchParams.get('vehicle')) : null)
+          }
         />
       </Modal>
     </div>

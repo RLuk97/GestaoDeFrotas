@@ -1,284 +1,421 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import {
-  ArrowLeft,
-  Car,
-  User,
-  Gauge,
-  Calendar,
-  Wrench,
-  Edit,
-  Plus,
-  FileText,
-  DollarSign
-} from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import VehicleForm from '../components/Vehicles/VehicleForm';
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Calendar,
+  Car,
+  Wrench,
+  DollarSign,
+  FileText,
+  MapPin,
+  Fuel,
+  Gauge,
+  User,
+  Phone,
+  Mail,
+  AlertCircle,
+  XCircle,
+  Plus
+} from 'lucide-react';
 import Modal from '../components/Common/Modal';
+import VehicleForm from '../components/Vehicles/VehicleForm';
 
 const VehicleDetails = () => {
   const { id } = useParams();
-  const { dispatch, getVehicleById, getClientById, getServicesByVehicle } = useApp();
-  const [showEditForm, setShowEditForm] = useState(false);
+  const navigate = useNavigate();
+  const { state, dispatch } = useApp();
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const vehicle = getVehicleById(parseInt(id));
-  const client = vehicle ? getClientById(vehicle.clientId) : null;
-  const services = vehicle ? getServicesByVehicle(vehicle.id) : [];
+  const vehicle = state.vehicles.find(v => v.id === parseInt(id));
+  const vehicleServices = state.services.filter(s => s.vehicleId === parseInt(id));
 
   if (!vehicle) {
     return (
-      <div className="text-center py-12">
-        <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Veículo não encontrado</h2>
-        <p className="text-gray-600 mb-6">O veículo solicitado não existe ou foi removido.</p>
-        <Link to="/vehicles" className="btn-primary">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar para Veículos
-        </Link>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Veículo não encontrado</h2>
+          <p className="text-gray-600 mb-4">O veículo solicitado não existe ou foi removido.</p>
+          <button
+            onClick={() => navigate('/vehicles')}
+            className="btn-primary"
+          >
+            Voltar para Veículos
+          </button>
+        </div>
       </div>
     );
   }
 
-  const handleUpdateVehicle = (vehicleData) => {
+  const handleEditVehicle = (vehicleData) => {
     dispatch({
       type: 'UPDATE_VEHICLE',
-      payload: { ...vehicleData, id: vehicle.id }
+      payload: { id: vehicle.id, ...vehicleData }
     });
-    setShowEditForm(false);
+    setShowEditModal(false);
   };
 
-  const getStatusBadge = (status) => {
+  const handleDeleteVehicle = () => {
+    dispatch({ type: 'DELETE_VEHICLE', payload: vehicle.id });
+    navigate('/vehicles');
+  };
+
+  const getStatusColor = (status) => {
     switch (status) {
-      case 'paid':
-        return <span className="status-paid">✅ Pago</span>;
-      case 'pending':
-        return <span className="status-pending">⚠️ Pendente</span>;
-      case 'partial':
-        return <span className="status-partial">💸 Parcial</span>;
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'maintenance':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'inactive':
+        return 'bg-red-100 text-red-800';
       default:
-        return <span className="status-pending">⚠️ Pendente</span>;
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const totalSpent = services
-    .filter(s => s.paymentStatus === 'paid')
-    .reduce((sum, s) => sum + s.totalValue, 0);
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'active':
+        return '✅ Ativo';
+      case 'maintenance':
+        return '🔧 Em Manutenção';
+      case 'inactive':
+        return '❌ Inativo';
+      default:
+        return 'Indefinido';
+    }
+  };
 
-  const pendingAmount = services
-    .filter(s => s.paymentStatus === 'pending' || s.paymentStatus === 'partial')
-    .reduce((sum, s) => sum + s.totalValue, 0);
+  const totalServiceCost = vehicleServices.reduce((sum, service) => sum + service.totalValue, 0);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link
-            to="/vehicles"
-            className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{vehicle.plate}</h1>
-            <p className="text-gray-600">{vehicle.brand} {vehicle.model}</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate('/vehicles')}
+                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                Voltar
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {vehicle.brand} {vehicle.model}
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Placa: {vehicle.plate} • Ano: {vehicle.year}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(vehicle.status)}`}>
+                {getStatusText(vehicle.status)}
+              </span>
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="btn-secondary flex items-center"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="btn-danger flex items-center"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
+              </button>
+            </div>
           </div>
         </div>
-        <button
-          onClick={() => setShowEditForm(true)}
-          className="btn-primary flex items-center"
-        >
-          <Edit className="h-4 w-4 mr-2" />
-          Editar Veículo
-        </button>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Informações do Veículo */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Card Principal */}
-          <div className="card p-6">
-            <div className="flex items-center mb-6">
-              <div className="p-3 bg-primary-100 rounded-lg">
-                <Car className="h-8 w-8 text-primary-600" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Informações Principais */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Informações do Veículo */}
+            <div className="card">
+              <div className="card-header">
+                <h2 className="card-title flex items-center">
+                  <Car className="h-5 w-5 mr-2" />
+                  Informações do Veículo
+                </h2>
               </div>
-              <div className="ml-4">
-                <h2 className="text-xl font-semibold text-gray-900">{vehicle.plate}</h2>
-                <p className="text-gray-600">{vehicle.brand} {vehicle.model}</p>
+              <div className="card-content">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Marca
+                    </label>
+                    <p className="text-gray-900 font-medium">{vehicle.brand}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Modelo
+                    </label>
+                    <p className="text-gray-900 font-medium">{vehicle.model}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Placa
+                    </label>
+                    <p className="text-gray-900 font-mono font-bold text-lg">{vehicle.plate}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Ano
+                    </label>
+                    <p className="text-gray-900">{vehicle.year}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Cor
+                    </label>
+                    <p className="text-gray-900">{vehicle.color}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Combustível
+                    </label>
+                    <p className="text-gray-900 flex items-center">
+                      <Fuel className="h-4 w-4 mr-2 text-gray-500" />
+                      {vehicle.fuelType}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Quilometragem
+                    </label>
+                    <p className="text-gray-900 flex items-center">
+                      <Gauge className="h-4 w-4 mr-2 text-gray-500" />
+                      {vehicle.mileage?.toLocaleString()} km
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Chassi
+                    </label>
+                    <p className="text-gray-900 font-mono text-sm">{vehicle.chassis}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <Gauge className="h-5 w-5 text-gray-400 mr-3" />
-                  <div>
-                    <p className="text-sm text-gray-600">Quilometragem Atual</p>
-                    <p className="font-semibold text-gray-900">{vehicle.currentMileage?.toLocaleString()} km</p>
-                  </div>
-                </div>
-
-                {client && (
-                  <div className="flex items-center">
-                    <User className="h-5 w-5 text-gray-400 mr-3" />
-                    <div>
-                      <p className="text-sm text-gray-600">Cliente</p>
-                      <p className="font-semibold text-gray-900">{client.name}</p>
-                      <p className="text-sm text-gray-500">{client.phone}</p>
-                    </div>
-                  </div>
-                )}
+            {/* Documentação */}
+            <div className="card">
+              <div className="card-header">
+                <h2 className="card-title flex items-center">
+                  <FileText className="h-5 w-5 mr-2" />
+                  Documentação
+                </h2>
               </div>
-
-              <div className="space-y-4">
-                {vehicle.lastService && (
-                  <div className="flex items-center">
-                    <Calendar className="h-5 w-5 text-gray-400 mr-3" />
-                    <div>
-                      <p className="text-sm text-gray-600">Último Serviço</p>
-                      <p className="font-semibold text-gray-900">{vehicle.lastService.type}</p>
-                      <p className="text-sm text-gray-500">
-                        {format(new Date(vehicle.lastService.date), 'dd/MM/yyyy', { locale: ptBR })}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center">
-                  <Wrench className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="card-content">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm text-gray-600">Total de Serviços</p>
-                    <p className="font-semibold text-gray-900">{services.length}</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      RENAVAM
+                    </label>
+                    <p className="text-gray-900 font-mono">{vehicle.renavam}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Licenciamento
+                    </label>
+                    <p className="text-gray-900">
+                      {vehicle.licensing ? format(new Date(vehicle.licensing), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Seguro
+                    </label>
+                    <p className="text-gray-900">
+                      {vehicle.insurance ? format(new Date(vehicle.insurance), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      IPVA
+                    </label>
+                    <p className="text-gray-900">
+                      {vehicle.ipva ? format(new Date(vehicle.ipva), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {vehicle.observations && (
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="flex items-start">
-                  <FileText className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Observações Técnicas</p>
-                    <p className="text-gray-900">{vehicle.observations}</p>
+            {/* Histórico de Serviços */}
+            <div className="card">
+              <div className="card-header">
+                <h2 className="card-title flex items-center">
+                  <Wrench className="h-5 w-5 mr-2" />
+                  Histórico de Serviços
+                </h2>
+              </div>
+              <div className="card-content">
+                {vehicleServices.length > 0 ? (
+                  <div className="space-y-4">
+                    {vehicleServices.map((service) => (
+                      <div key={service.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-gray-900">{service.type}</h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {format(new Date(service.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-gray-900">R$ {service.totalValue?.toFixed(2)}</p>
+                            <Link
+                              to={`/services/${service.id}`}
+                              className="text-sm text-blue-600 hover:text-blue-800"
+                            >
+                              Ver detalhes
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-lg text-center">
+                    <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600">Nenhum serviço registrado</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Os serviços realizados neste veículo aparecerão aqui
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Informações do Proprietário */}
+            {vehicle.owner && (
+              <div className="card">
+                <div className="card-header">
+                  <h2 className="card-title flex items-center">
+                    <User className="h-5 w-5 mr-2" />
+                    Proprietário
+                  </h2>
+                </div>
+                <div className="card-content">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Nome
+                      </label>
+                      <p className="text-gray-900 font-medium">{vehicle.owner}</p>
+                    </div>
+                    {vehicle.ownerPhone && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Telefone
+                        </label>
+                        <p className="text-gray-900 flex items-center">
+                          <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                          {vehicle.ownerPhone}
+                        </p>
+                      </div>
+                    )}
+                    {vehicle.ownerEmail && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          E-mail
+                        </label>
+                        <p className="text-gray-900 flex items-center">
+                          <Mail className="h-4 w-4 mr-2 text-gray-500" />
+                          {vehicle.ownerEmail}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             )}
-          </div>
 
-          {/* Histórico de Serviços */}
-          <div className="card">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Histórico de Serviços</h3>
-                <Link
-                  to={`/services?vehicle=${vehicle.id}`}
-                  className="btn-primary flex items-center text-sm"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Serviço
-                </Link>
+            {/* Resumo Financeiro */}
+            <div className="card">
+              <div className="card-header">
+                <h2 className="card-title flex items-center">
+                  <DollarSign className="h-5 w-5 mr-2" />
+                  Resumo Financeiro
+                </h2>
               </div>
-            </div>
-
-            <div className="divide-y divide-gray-200">
-              {services.length === 0 ? (
-                <div className="p-8 text-center">
-                  <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Nenhum serviço registrado para este veículo</p>
-                </div>
-              ) : (
-                services
-                  .sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate))
-                  .map((service) => (
-                    <div key={service.id} className="p-6 hover:bg-gray-50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900">{service.type}</h4>
-                            {getStatusBadge(service.paymentStatus)}
-                          </div>
-                          <p className="text-sm text-gray-600 mb-2">{service.description}</p>
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <span>Entrada: {format(new Date(service.entryDate), 'dd/MM/yyyy', { locale: ptBR })}</span>
-                            {service.exitDate && (
-                              <span>Saída: {format(new Date(service.exitDate), 'dd/MM/yyyy', { locale: ptBR })}</span>
-                            )}
-                            <span>{service.mileage?.toLocaleString()} km</span>
-                          </div>
-                        </div>
-                        <div className="text-right ml-4">
-                          <p className="font-semibold text-gray-900">R$ {service.totalValue.toFixed(2)}</p>
-                          <Link
-                            to={`/services/${service.id}`}
-                            className="text-sm text-primary-600 hover:text-primary-700"
-                          >
-                            Ver detalhes
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Sidebar com Resumo Financeiro */}
-        <div className="space-y-6">
-          {/* Resumo Financeiro */}
-          <div className="card p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumo Financeiro</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <DollarSign className="h-5 w-5 text-green-600 mr-2" />
-                  <span className="text-sm text-gray-600">Total Pago</span>
-                </div>
-                <span className="font-semibold text-green-600">R$ {totalSpent.toFixed(2)}</span>
-              </div>
-              
-              {pendingAmount > 0 && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <DollarSign className="h-5 w-5 text-red-600 mr-2" />
-                    <span className="text-sm text-gray-600">Pendente</span>
+              <div className="card-content">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total em Serviços:</span>
+                    <span className="font-medium">R$ {totalServiceCost.toFixed(2)}</span>
                   </div>
-                  <span className="font-semibold text-red-600">R$ {pendingAmount.toFixed(2)}</span>
-                </div>
-              )}
-              
-              <div className="pt-4 border-t border-gray-200">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-900">Total Geral</span>
-                  <span className="font-bold text-gray-900">R$ {(totalSpent + pendingAmount).toFixed(2)}</span>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Número de Serviços:</span>
+                    <span className="font-medium">{vehicleServices.length}</span>
+                  </div>
+                  {vehicleServices.length > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Média por Serviço:</span>
+                      <span className="font-medium">R$ {(totalServiceCost / vehicleServices.length).toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Estatísticas */}
-          <div className="card p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Estatísticas</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Total de Serviços</span>
-                <span className="font-medium text-gray-900">{services.length}</span>
+            {/* Próximas Manutenções */}
+            <div className="card">
+              <div className="card-header">
+                <h2 className="card-title flex items-center">
+                  <Calendar className="h-5 w-5 mr-2" />
+                  Próximas Manutenções
+                </h2>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Serviços Pagos</span>
-                <span className="font-medium text-gray-900">
-                  {services.filter(s => s.paymentStatus === 'paid').length}
-                </span>
+              <div className="card-content">
+                {/* Aqui você pode adicionar lógica para manutenções programadas */}
+                <div className="bg-gray-50 p-4 rounded-lg text-center">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600">Nenhuma manutenção agendada</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Agende manutenções preventivas para manter o veículo em bom estado
+                  </p>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Serviços Pendentes</span>
-                <span className="font-medium text-gray-900">
-                  {services.filter(s => s.paymentStatus === 'pending' || s.paymentStatus === 'partial').length}
-                </span>
+            </div>
+
+            {/* Ações Rápidas */}
+            <div className="card">
+              <div className="card-header">
+                <h2 className="card-title">Ações Rápidas</h2>
+              </div>
+              <div className="card-content">
+                <div className="space-y-3">
+                  <Link
+                    to={`/services?vehicle=${vehicle.id}&openModal=true`}
+                    className="btn-primary w-full flex items-center justify-center"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Novo Serviço
+                  </Link>
+                  <button
+                    onClick={() => setShowEditModal(true)}
+                    className="btn-secondary w-full flex items-center justify-center"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar Veículo
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -287,15 +424,54 @@ const VehicleDetails = () => {
 
       {/* Modal de Edição */}
       <Modal
-        isOpen={showEditForm}
-        onClose={() => setShowEditForm(false)}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
         title="Editar Veículo"
+        size="xl"
       >
         <VehicleForm
           vehicle={vehicle}
-          onSubmit={handleUpdateVehicle}
-          onCancel={() => setShowEditForm(false)}
+          onSubmit={handleEditVehicle}
+          onCancel={() => setShowEditModal(false)}
         />
+      </Modal>
+
+      {/* Modal de Confirmação de Exclusão */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Confirmar Exclusão"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.
+          </p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 mr-3" />
+              <div>
+                <h4 className="text-sm font-medium text-yellow-800">Atenção</h4>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Ao excluir este veículo, todos os serviços relacionados também serão removidos.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              className="btn-secondary"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleDeleteVehicle}
+              className="btn-danger"
+            >
+              Excluir Veículo
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

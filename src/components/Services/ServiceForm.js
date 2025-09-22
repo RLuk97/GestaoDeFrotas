@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Plus, Trash2 } from 'lucide-react';
 
 const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
   const { state } = useApp();
@@ -12,15 +11,9 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
     exitDate: '',
     mileage: '',
     totalValue: '',
-    paymentStatus: 'pending',
-    parts: []
+    paymentStatus: 'pending'
   });
   const [errors, setErrors] = useState({});
-  const [newPart, setNewPart] = useState({
-    name: '',
-    quantity: 1,
-    unitPrice: ''
-  });
 
   useEffect(() => {
     if (service) {
@@ -32,8 +25,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
         exitDate: service.exitDate || '',
         mileage: service.mileage || '',
         totalValue: service.totalValue || '',
-        paymentStatus: service.paymentStatus || 'pending',
-        parts: service.parts || []
+        paymentStatus: service.paymentStatus || 'pending'
       });
     } else if (preselectedVehicleId) {
       setFormData(prev => ({ ...prev, vehicleId: preselectedVehicleId }));
@@ -86,12 +78,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
         ...formData,
         vehicleId: parseInt(formData.vehicleId),
         mileage: parseInt(formData.mileage),
-        totalValue: parseFloat(formData.totalValue),
-        parts: formData.parts.map(part => ({
-          ...part,
-          quantity: parseInt(part.quantity),
-          unitPrice: parseFloat(part.unitPrice)
-        }))
+        totalValue: parseFloat(formData.totalValue)
       };
       onSubmit(serviceData);
     }
@@ -106,36 +93,6 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
-
-  const handleAddPart = () => {
-    if (newPart.name && newPart.quantity && newPart.unitPrice) {
-      const part = {
-        id: Date.now(),
-        name: newPart.name,
-        quantity: parseInt(newPart.quantity),
-        unitPrice: parseFloat(newPart.unitPrice)
-      };
-      setFormData(prev => ({
-        ...prev,
-        parts: [...prev.parts, part]
-      }));
-      setNewPart({ name: '', quantity: 1, unitPrice: '' });
-    }
-  };
-
-  const handleRemovePart = (partId) => {
-    setFormData(prev => ({
-      ...prev,
-      parts: prev.parts.filter(part => part.id !== partId)
-    }));
-  };
-
-  const handleNewPartChange = (e) => {
-    const { name, value } = e.target;
-    setNewPart(prev => ({ ...prev, [name]: value }));
-  };
-
-  const partsTotal = formData.parts.reduce((sum, part) => sum + (part.quantity * part.unitPrice), 0);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -277,123 +234,6 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
         )}
       </div>
 
-      {/* Peças Utilizadas */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Peças Utilizadas</h3>
-        
-        {/* Lista de Peças */}
-        {formData.parts.length > 0 && (
-          <div className="mb-4">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Peça
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Qtd
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Valor Unit.
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Total
-                    </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                      Ação
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {formData.parts.map((part) => (
-                    <tr key={part.id}>
-                      <td className="px-4 py-2 text-sm text-gray-900">{part.name}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{part.quantity}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">R$ {part.unitPrice.toFixed(2)}</td>
-                      <td className="px-4 py-2 text-sm font-medium text-gray-900">
-                        R$ {(part.quantity * part.unitPrice).toFixed(2)}
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePart(part.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="bg-gray-50">
-                  <tr>
-                    <td colSpan="3" className="px-4 py-2 text-sm font-medium text-gray-900 text-right">
-                      Total das Peças:
-                    </td>
-                    <td className="px-4 py-2 text-sm font-bold text-gray-900">
-                      R$ {partsTotal.toFixed(2)}
-                    </td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Adicionar Nova Peça */}
-        <div className="border border-gray-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">Adicionar Peça</h4>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div className="md:col-span-2">
-              <input
-                type="text"
-                name="name"
-                value={newPart.name}
-                onChange={handleNewPartChange}
-                placeholder="Nome da peça"
-                className="input-field"
-              />
-            </div>
-            <div>
-              <input
-                type="number"
-                name="quantity"
-                value={newPart.quantity}
-                onChange={handleNewPartChange}
-                placeholder="Qtd"
-                min="1"
-                className="input-field"
-              />
-            </div>
-            <div>
-              <input
-                type="number"
-                name="unitPrice"
-                value={newPart.unitPrice}
-                onChange={handleNewPartChange}
-                placeholder="Valor unitário"
-                min="0"
-                step="0.01"
-                className="input-field"
-              />
-            </div>
-          </div>
-          <div className="mt-3">
-            <button
-              type="button"
-              onClick={handleAddPart}
-              disabled={!newPart.name || !newPart.quantity || !newPart.unitPrice}
-              className="btn-secondary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Peça
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Valor Total */}
       <div>
         <label htmlFor="totalValue" className="block text-sm font-medium text-gray-700 mb-2">
@@ -412,11 +252,6 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
         />
         {errors.totalValue && (
           <p className="mt-1 text-sm text-red-600">{errors.totalValue}</p>
-        )}
-        {partsTotal > 0 && (
-          <p className="mt-1 text-sm text-gray-500">
-            Valor das peças: R$ {partsTotal.toFixed(2)}
-          </p>
         )}
       </div>
 
