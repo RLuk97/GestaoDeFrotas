@@ -37,11 +37,11 @@ const VehicleDetails = () => {
 
   if (!vehicle) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Veículo não encontrado</h2>
-          <p className="text-gray-600 mb-4">O veículo solicitado não existe ou foi removido.</p>
+      <div className="min-h-screen bg-brand-surface flex items-center justify-center">
+      <div className="text-center">
+        <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-brand-primary mb-2">Veículo não encontrado</h2>
+        <p className="text-brand-muted mb-4">O veículo solicitado não existe ou foi removido.</p>
           <button
             onClick={() => navigate('/vehicles')}
             className="btn-primary"
@@ -95,23 +95,36 @@ const VehicleDetails = () => {
   const totalServiceCost = vehicleServices.reduce((sum, service) => sum + service.totalValue, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-surface">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Breadcrumb */}
+        <nav className="mb-8">
+          <button
+            onClick={() => navigate('/vehicles')}
+            className="flex items-center text-brand-muted hover:text-brand-primary transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para Veículos
+          </button>
+        </nav>
+
         {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-brand-primary">
+            Detalhes do Veículo
+          </h1>
+          <p className="text-brand-muted mt-1">
+            Informações completas sobre o veículo {vehicle.plate}
+          </p>
+        </div>
+
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/vehicles')}
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Voltar
-              </button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h2 className="text-2xl font-bold text-gray-900">
                   {vehicle.brand} {vehicle.model}
-                </h1>
+                </h2>
                 <p className="text-gray-600 mt-1">
                   Placa: {vehicle.plate} • Ano: {vehicle.year}
                 </p>
@@ -153,58 +166,58 @@ const VehicleDetails = () => {
               <div className="card-content">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       Marca
                     </label>
-                    <p className="text-gray-900 font-medium">{vehicle.brand}</p>
+                    <p className="text-brand-primary font-medium">{vehicle.brand}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       Modelo
                     </label>
-                    <p className="text-gray-900 font-medium">{vehicle.model}</p>
+                    <p className="text-brand-primary font-medium">{vehicle.model}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       Placa
                     </label>
-                    <p className="text-gray-900 font-mono font-bold text-lg">{vehicle.plate}</p>
+                    <p className="text-brand-primary font-mono font-bold text-lg">{vehicle.plate}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       Ano
                     </label>
-                    <p className="text-gray-900">{vehicle.year}</p>
+                    <p className="text-brand-primary">{vehicle.year}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       Cor
                     </label>
-                    <p className="text-gray-900">{vehicle.color}</p>
+                    <p className="text-brand-primary">{vehicle.color}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       Combustível
                     </label>
-                    <p className="text-gray-900 flex items-center">
-                      <Fuel className="h-4 w-4 mr-2 text-gray-500" />
+                    <p className="text-brand-primary flex items-center">
+                      <Fuel className="h-4 w-4 mr-2 text-brand-muted" />
                       {vehicle.fuelType}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       Quilometragem
                     </label>
-                    <p className="text-gray-900 flex items-center">
-                      <Gauge className="h-4 w-4 mr-2 text-gray-500" />
+                    <p className="text-brand-primary flex items-center">
+                      <Gauge className="h-4 w-4 mr-2 text-brand-muted" />
                       {vehicle.mileage?.toLocaleString()} km
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       Chassi
                     </label>
-                    <p className="text-gray-900 font-mono text-sm">{vehicle.chassis}</p>
+                    <p className="text-brand-primary font-mono text-sm">{vehicle.chassis}</p>
                   </div>
                 </div>
               </div>
@@ -221,32 +234,32 @@ const VehicleDetails = () => {
               <div className="card-content">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       RENAVAM
                     </label>
-                    <p className="text-gray-900 font-mono">{vehicle.renavam}</p>
+                    <p className="text-brand-primary font-mono">{vehicle.renavam}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       Licenciamento
                     </label>
-                    <p className="text-gray-900">
+                    <p className="text-brand-primary">
                       {vehicle.licensing ? format(new Date(vehicle.licensing), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       Seguro
                     </label>
-                    <p className="text-gray-900">
+                    <p className="text-brand-primary">
                       {vehicle.insurance ? format(new Date(vehicle.insurance), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-brand-muted mb-1">
                       IPVA
                     </label>
-                    <p className="text-gray-900">
+                    <p className="text-brand-primary">
                       {vehicle.ipva ? format(new Date(vehicle.ipva), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}
                     </p>
                   </div>
@@ -266,19 +279,19 @@ const VehicleDetails = () => {
                 {vehicleServices.length > 0 ? (
                   <div className="space-y-4">
                     {vehicleServices.map((service) => (
-                      <div key={service.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div key={service.id} className="border border-brand-border rounded-lg p-4 hover:bg-brand-hover transition-colors">
                         <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-gray-900">{service.type}</h4>
-                            <p className="text-sm text-gray-600 mt-1">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-brand-primary">{service.type}</h4>
+                            <p className="text-sm text-brand-muted mt-1">
                               {format(new Date(service.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-gray-900">R$ {service.totalValue?.toFixed(2)}</p>
+                            <p className="font-medium text-brand-primary">R$ {service.totalValue?.toFixed(2)}</p>
                             <Link
                               to={`/services/${service.id}`}
-                              className="text-sm text-blue-600 hover:text-blue-800"
+                              className="text-sm text-brand-secondary hover:text-brand-primary"
                             >
                               Ver detalhes
                             </Link>
@@ -288,10 +301,10 @@ const VehicleDetails = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg text-center">
-                    <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600">Nenhum serviço registrado</p>
-                    <p className="text-sm text-gray-500 mt-1">
+                  <div className="bg-brand-surface p-4 rounded-lg text-center">
+                    <Wrench className="h-12 w-12 text-brand-muted mx-auto mb-2" />
+                    <p className="text-brand-muted">Nenhum serviço registrado</p>
+                    <p className="text-sm text-brand-muted mt-1">
                       Os serviços realizados neste veículo aparecerão aqui
                     </p>
                   </div>
@@ -314,29 +327,29 @@ const VehicleDetails = () => {
                 <div className="card-content">
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-brand-muted">
                         Nome
                       </label>
-                      <p className="text-gray-900 font-medium">{vehicle.owner}</p>
+                      <p className="text-brand-primary font-medium">{vehicle.owner}</p>
                     </div>
                     {vehicle.ownerPhone && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-brand-muted">
                           Telefone
                         </label>
-                        <p className="text-gray-900 flex items-center">
-                          <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                        <p className="text-brand-primary flex items-center">
+                          <Phone className="h-4 w-4 mr-2 text-brand-muted" />
                           {vehicle.ownerPhone}
                         </p>
                       </div>
                     )}
                     {vehicle.ownerEmail && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-brand-muted">
                           E-mail
                         </label>
-                        <p className="text-gray-900 flex items-center">
-                          <Mail className="h-4 w-4 mr-2 text-gray-500" />
+                        <p className="text-brand-primary flex items-center">
+                          <Mail className="h-4 w-4 mr-2 text-brand-muted" />
                           {vehicle.ownerEmail}
                         </p>
                       </div>

@@ -6,6 +6,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
   const [formData, setFormData] = useState({
     vehicleId: preselectedVehicleId || '',
     type: '',
+    customType: '',
     description: '',
     entryDate: '',
     exitDate: '',
@@ -20,6 +21,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
       setFormData({
         vehicleId: service.vehicleId || '',
         type: service.type || '',
+        customType: '',
         description: service.description || '',
         entryDate: service.entryDate || '',
         exitDate: service.exitDate || '',
@@ -41,6 +43,8 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
 
     if (!formData.type.trim()) {
       newErrors.type = 'Tipo de serviço é obrigatório';
+    } else if (formData.type === 'Outro' && !formData.customType.trim()) {
+      newErrors.customType = 'Especifique o tipo de serviço personalizado';
     }
 
     if (!formData.description.trim()) {
@@ -76,10 +80,13 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
     if (validateForm()) {
       const serviceData = {
         ...formData,
+        type: formData.type === 'Outro' ? formData.customType : formData.type,
         vehicleId: parseInt(formData.vehicleId),
         mileage: parseInt(formData.mileage),
         totalValue: parseFloat(formData.totalValue)
       };
+      // Remove customType do objeto final
+      delete serviceData.customType;
       onSubmit(serviceData);
     }
   };
@@ -126,19 +133,61 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
           <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
             Tipo de Serviço *
           </label>
-          <input
-            type="text"
+          <select
             id="type"
             name="type"
             value={formData.type}
             onChange={handleChange}
-            placeholder="Revisão, Conserto, Troca de peças..."
             className={`input-field ${errors.type ? 'border-red-500 focus:ring-red-500' : ''}`}
-          />
+          >
+            <option value="">Selecione o tipo de serviço</option>
+            <option value="Revisão Geral">Revisão Geral</option>
+            <option value="Troca de Óleo">Troca de Óleo</option>
+            <option value="Troca de Filtros">Troca de Filtros</option>
+            <option value="Alinhamento e Balanceamento">Alinhamento e Balanceamento</option>
+            <option value="Troca de Pneus">Troca de Pneus</option>
+            <option value="Freios">Freios</option>
+            <option value="Suspensão">Suspensão</option>
+            <option value="Sistema Elétrico">Sistema Elétrico</option>
+            <option value="Ar Condicionado">Ar Condicionado</option>
+            <option value="Bateria">Bateria</option>
+            <option value="Embreagem">Embreagem</option>
+            <option value="Radiador">Radiador</option>
+            <option value="Escapamento">Escapamento</option>
+            <option value="Injeção Eletrônica">Injeção Eletrônica</option>
+            <option value="Cambio">Câmbio</option>
+            <option value="Motor">Motor</option>
+            <option value="Pintura">Pintura</option>
+            <option value="Funilaria">Funilaria</option>
+            <option value="Lavagem e Enceramento">Lavagem e Enceramento</option>
+            <option value="Inspeção Veicular">Inspeção Veicular</option>
+            <option value="Outro">Outro</option>
+          </select>
           {errors.type && (
             <p className="mt-1 text-sm text-red-600">{errors.type}</p>
           )}
         </div>
+
+        {/* Campo Personalizado - aparece apenas quando "Outro" é selecionado */}
+        {formData.type === 'Outro' && (
+          <div>
+            <label htmlFor="customType" className="block text-sm font-medium text-gray-700 mb-2">
+              Especifique o Tipo de Serviço *
+            </label>
+            <input
+              type="text"
+              id="customType"
+              name="customType"
+              value={formData.customType}
+              onChange={handleChange}
+              placeholder="Digite o tipo de serviço personalizado..."
+              className={`input-field ${errors.customType ? 'border-red-500 focus:ring-red-500' : ''}`}
+            />
+            {errors.customType && (
+              <p className="mt-1 text-sm text-red-600">{errors.customType}</p>
+            )}
+          </div>
+        )}
 
         {/* Data de Entrada */}
         <div>

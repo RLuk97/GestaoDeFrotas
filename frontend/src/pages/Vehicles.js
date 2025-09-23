@@ -131,81 +131,86 @@ const Vehicles = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-brand-navy">Gestão de Veículos</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Gestão de Veículos</h1>
           <p className="text-gray-600">Cadastro e controle da frota de veículos</p>
         </div>
         <button
           onClick={handleAddVehicle}
-          className="bg-brand-blue hover:bg-brand-navy text-brand-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors mt-4 sm:mt-0"
+          className="inline-flex items-center px-4 py-2 bg-brand-primary hover:bg-slate-800 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 mt-4 sm:mt-0"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 mr-2" />
           Novo Veículo
         </button>
       </div>
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="card p-4 hover:shadow-lg transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all duration-200">
           <div className="flex items-center">
-            <Car className="h-8 w-8 text-blue-600" />
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Total de Veículos</p>
+            <div className="p-2.5 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 mr-3">
+              <Car className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-0.5">Total de Veículos</p>
               <p className="text-xl font-bold text-gray-900">{vehicles.length}</p>
             </div>
           </div>
         </div>
-        <div className="card p-4 hover:shadow-lg transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all duration-200">
           <div className="flex items-center">
-            <CheckCircle className="h-8 w-8 text-green-600" />
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Ativos</p>
-              <p className="text-xl font-bold text-green-600">{vehicles.filter(v => v.status === 'active').length}</p>
+            <div className="p-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 mr-3">
+              <CheckCircle className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-0.5">Ativos</p>
+              <p className="text-xl font-bold text-gray-900">{vehicles.filter(v => v.status === 'active').length}</p>
             </div>
           </div>
         </div>
-        <div className="card p-4 hover:shadow-lg transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all duration-200">
           <div className="flex items-center">
-            <Wrench className="h-8 w-8 text-yellow-600" />
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Em Manutenção</p>
-              <p className="text-xl font-bold text-yellow-600">{vehicles.filter(v => v.status === 'maintenance').length}</p>
+            <div className="p-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 mr-3">
+              <Wrench className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-0.5">Em Manutenção</p>
+              <p className="text-xl font-bold text-gray-900">{vehicles.filter(v => v.status === 'maintenance').length}</p>
             </div>
           </div>
         </div>
-        <div className="card p-4 hover:shadow-lg transition-shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all duration-200">
           <div className="flex items-center">
-            <AlertTriangle className="h-8 w-8 text-red-600" />
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Inativos</p>
-              <p className="text-xl font-bold text-red-600">{vehicles.filter(v => v.status === 'inactive').length}</p>
+            <div className="p-2.5 rounded-lg bg-gradient-to-r from-red-500 to-red-600 mr-3">
+              <AlertTriangle className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-0.5">Inativos</p>
+              <p className="text-xl font-bold text-gray-900">{vehicles.filter(v => v.status === 'inactive').length}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="card p-6 hover:shadow-lg transition-shadow mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
-          {/* Busca */}
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Buscar por placa, modelo ou marca..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent"
-              />
-            </div>
+      {/* Barra de Pesquisa e Filtros */}
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Buscar por placa, modelo ou marca..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+            />
+            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
           </div>
-
+          
           {/* Filtros */}
           <div className="flex space-x-4">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-transparent min-w-[120px]"
+              className="min-w-[140px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
             >
               <option value="all">Todos Status</option>
               <option value="active">Ativos</option>
@@ -217,17 +222,17 @@ const Vehicles = () => {
       </div>
 
       {/* Lista de Veículos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scrollbar-hide">
         {filteredVehicles.map((vehicle) => {
           const client = getClientById(vehicle.clientId);
           return (
-            <div key={vehicle.id} className="card hover:shadow-lg transition-shadow">
+            <div key={vehicle.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
               <div className="p-6">
                 {/* Header do Card */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Car className="h-6 w-6 text-blue-600" />
+                    <div className="p-2.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg">
+                      <Car className="h-5 w-5 text-white" />
                     </div>
                     <div className="ml-3">
                       <h3 className="text-lg font-semibold text-gray-900">{vehicle.plate}</h3>
@@ -237,21 +242,21 @@ const Vehicles = () => {
                   <div className="flex space-x-2">
                     <Link
                       to={`/vehicles/${vehicle.id}`}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
                       title="Ver detalhes"
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
                     <button
                       onClick={() => handleEditVehicle(vehicle)}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
                       title="Editar"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteVehicle(vehicle)}
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                      className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
                       title="Excluir"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -331,7 +336,7 @@ const Vehicles = () => {
                 {/* Observações */}
                 {vehicle.observations && (
                   <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">{vehicle.observations}</p>
+                    <p className="text-sm text-gray-600">{vehicle.observations}</p>
                   </div>
                 )}
 
@@ -341,9 +346,9 @@ const Vehicles = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-900">{vehicle.lastService.type}</p>
-                        <p className="text-xs text-gray-500">{vehicle.lastService.mileage?.toLocaleString()} km</p>
+                        <p className="text-xs text-gray-600">{vehicle.lastService.mileage?.toLocaleString()} km</p>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-600">
                         {format(new Date(vehicle.lastService.date), 'dd/MM', { locale: ptBR })}
                       </span>
                     </div>
@@ -357,7 +362,7 @@ const Vehicles = () => {
 
       {/* Mensagem quando não há veículos */}
       {filteredVehicles.length === 0 && (
-        <div className="card p-12 text-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
           <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             {searchTerm || statusFilter !== 'all' ? 'Nenhum veículo encontrado' : 'Nenhum veículo cadastrado'}
@@ -369,8 +374,8 @@ const Vehicles = () => {
             }
           </p>
           {!searchTerm && statusFilter === 'all' && (
-            <button onClick={handleAddVehicle} className="bg-brand-blue hover:bg-brand-navy text-brand-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors mx-auto">
-              <Plus className="h-4 w-4" />
+            <button onClick={handleAddVehicle} className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200">
+              <Plus className="h-4 w-4 mr-2" />
               Cadastrar Primeiro Veículo
             </button>
           )}
@@ -403,22 +408,22 @@ const Vehicles = () => {
         title="Confirmar Exclusão"
       >
         <div className="space-y-4">
-          <p className="text-gray-600">
+          <p className="text-brand-muted">
             Tem certeza que deseja excluir o veículo <strong>{vehicleToDelete?.plate}</strong>?
           </p>
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-red-500">
             Esta ação não pode ser desfeita e todos os serviços associados serão mantidos.
           </p>
           <div className="flex justify-end space-x-3">
             <button
               onClick={() => setShowDeleteModal(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="btn-secondary"
             >
               Cancelar
             </button>
             <button
               onClick={confirmDelete}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="btn-danger"
             >
               Excluir Veículo
             </button>

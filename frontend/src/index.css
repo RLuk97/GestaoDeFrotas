@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  html, body, #root {
+    height: 100%;
+    background-color: #F8FAFC;
+    overflow-x: hidden;
+  }
+  
+  body {
+    @apply text-slate-700 font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  
+  /* Scrollbar personalizada */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-100;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+  
+  /* Classe para esconder scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    overflow: auto;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+  
+  /* Força esconder todos os scrollbars */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+}
+
+@layer components {
+  /* Botões modernos */
+  .btn-primary {
+    @apply bg-brand-primary hover:bg-slate-800 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-brand-background hover:bg-brand-hover text-brand-primary border border-brand-border px-4 py-2.5 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2;
+  }
+  
+  .btn-accent {
+    @apply bg-brand-accent hover:bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  }
+  
+  /* Cards modernos */
+  .card {
+    @apply bg-brand-background rounded-xl p-2 shadow-sm border border-brand-border hover:shadow-md transition-all duration-200;
+  }
+  
+  .card-compact {
+    @apply bg-brand-background rounded-lg p-4 shadow-sm border border-brand-border hover:shadow-md transition-all duration-200;
+  }
+  
+  /* Campos de entrada modernos */
+  .input-field {
+    @apply w-full px-4 py-2.5 border border-brand-border rounded-lg bg-brand-background text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent transition-all duration-200;
+  }
+  
+  /* Badges de status modernos */
+  .status-badge {
+    @apply px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide;
+  }
+  
+  .status-paid {
+    @apply status-badge bg-emerald-100 text-emerald-700 border border-emerald-200;
+  }
+  
+  .status-pending {
+    @apply status-badge bg-amber-100 text-amber-700 border border-amber-200;
+  }
+  
+  .status-partial {
+    @apply status-badge bg-blue-100 text-blue-700 border border-blue-200;
+  }
+  
+  .status-overdue {
+    @apply status-badge bg-red-100 text-red-700 border border-red-200;
+  }
+  
+  /* Elementos de navegação */
+  .nav-link {
+    @apply text-brand-muted hover:text-brand-primary transition-colors duration-200;
+  }
+  
+  .nav-link-active {
+    @apply text-brand-primary font-medium;
+  }
+}

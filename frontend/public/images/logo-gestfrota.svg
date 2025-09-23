@@ -1,0 +1,68 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wheelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#374151;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f2937;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="tireGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#4b5563;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#374151;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f2937;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Main Tire (Outer Circle) -->
+  <circle cx="60" cy="60" r="45" fill="url(#tireGradient)" stroke="#111827" stroke-width="3"/>
+  
+  <!-- Tire Tread Pattern -->
+  <circle cx="60" cy="60" r="40" fill="none" stroke="#6b7280" stroke-width="1" opacity="0.5"/>
+  <circle cx="60" cy="60" r="35" fill="none" stroke="#6b7280" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Tire Sidewall Details -->
+  <circle cx="60" cy="60" r="42" fill="none" stroke="#9ca3af" stroke-width="0.5" opacity="0.7"/>
+  
+  <!-- Inner Hub Area (where rim would be) -->
+  <circle cx="60" cy="60" r="25" fill="#2d3748" stroke="#4a5568" stroke-width="2"/>
+  
+  <!-- Hub Center -->
+  <circle cx="60" cy="60" r="8" fill="#1a202c" stroke="#2d3748" stroke-width="1"/>
+  
+  <!-- Bolt Pattern (5 bolts) -->
+  <circle cx="60" cy="45" r="2" fill="#4a5568"/>
+  <circle cx="74.3" cy="52.5" r="2" fill="#4a5568"/>
+  <circle cx="74.3" cy="67.5" r="2" fill="#4a5568"/>
+  <circle cx="60" cy="75" r="2" fill="#4a5568"/>
+  <circle cx="45.7" cy="67.5" r="2" fill="#4a5568"/>
+  <circle cx="45.7" cy="52.5" r="2" fill="#4a5568"/>
+  
+  <!-- Tire Tread Blocks -->
+  <g opacity="0.6">
+    <!-- Top tread blocks -->
+    <rect x="58" y="15" width="4" height="8" rx="1" fill="#9ca3af"/>
+    <rect x="50" y="18" width="4" height="8" rx="1" fill="#9ca3af"/>
+    <rect x="66" y="18" width="4" height="8" rx="1" fill="#9ca3af"/>
+    
+    <!-- Right tread blocks -->
+    <rect x="97" y="58" width="8" height="4" rx="1" fill="#9ca3af"/>
+    <rect x="94" y="50" width="8" height="4" rx="1" fill="#9ca3af"/>
+    <rect x="94" y="66" width="8" height="4" rx="1" fill="#9ca3af"/>
+    
+    <!-- Bottom tread blocks -->
+    <rect x="58" y="97" width="4" height="8" rx="1" fill="#9ca3af"/>
+    <rect x="50" y="94" width="4" height="8" rx="1" fill="#9ca3af"/>
+    <rect x="66" y="94" width="4" height="8" rx="1" fill="#9ca3af"/>
+    
+    <!-- Left tread blocks -->
+    <rect x="15" y="58" width="8" height="4" rx="1" fill="#9ca3af"/>
+    <rect x="18" y="50" width="8" height="4" rx="1" fill="#9ca3af"/>
+    <rect x="18" y="66" width="8" height="4" rx="1" fill="#9ca3af"/>
+  </g>
+  
+  <!-- Speed/Motion Lines -->
+  <g opacity="0.7">
+    <line x1="10" y1="45" x2="20" y2="45" stroke="#dc2626" stroke-width="2"/>
+    <line x1="8" y1="55" x2="18" y2="55" stroke="#dc2626" stroke-width="2"/>
+    <line x1="10" y1="65" x2="20" y2="65" stroke="#dc2626" stroke-width="2"/>
+    <line x1="12" y1="75" x2="22" y2="75" stroke="#dc2626" stroke-width="2"/>
+  </g>
+</svg>
