@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useNotifications } from '../context/NotificationContext';
 import {
   Plus,
   Search,
@@ -15,13 +16,13 @@ import {
   Wrench,
   AlertTriangle
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import VehicleForm from '../components/Vehicles/VehicleForm';
 import Modal from '../components/Common/Modal';
+import ApiService from '../services/api';
 
 const Vehicles = () => {
   const { state, dispatch, getClientById } = useApp();
+  const { addVehicleNotification, addVehicleDeleteNotification } = useNotifications();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -42,9 +43,9 @@ const Vehicles = () => {
 
   // Filtrar veículos
   const filteredVehicles = vehicles.filter(vehicle => {
-    const matchesSearch = vehicle.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.model.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (vehicle.license_plate || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (vehicle.brand || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (vehicle.model || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter;
     
@@ -66,32 +67,67 @@ const Vehicles = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    if (vehicleToDelete) {
+  const handleFormSubmit = async (vehicleData) => {
+    try {
+      if (editingVehicle) {
+        // Atualizar veículo existente
+        const response = await ApiService.updateVehicle(editingVehicle.id, vehicleData);
+        dispatch({
+          type: 'UPDATE_VEHICLE',
+          payload: { ...response.data, id: editingVehicle.id }
+        });
+        // Adicionar notificação de edição
+        addVehicleNotification(vehicleData, true); // true para indicar edição
+      } else {
+        // Criar novo veículo
+        const response = await ApiService.createVehicle(vehicleData);
+        dispatch({ type: 'ADD_VEHICLE', payload: response.data });
+        // Adicionar notificação de novo veículo
+        addVehicleNotification(vehicleData, false); // false para indicar criação
+      }
+      setShowForm(false);
+      setEditingVehicle(null);
+    } catch (error) {
+      console.error('Erro ao salvar veículo:', error);
+      alert('Erro ao salvar veículo: ' + error.message);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!vehicleToDelete) return;
+    
+    try {
+      await ApiService.deleteVehicle(vehicleToDelete.id);
       dispatch({ type: 'DELETE_VEHICLE', payload: vehicleToDelete.id });
+      
+      // Adicionar notificação de exclusão
+      addVehicleDeleteNotification(vehicleToDelete);
+      
       setShowDeleteModal(false);
       setVehicleToDelete(null);
+      alert('Veículo excluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao excluir veículo:', error);
+      if (error.message.includes('constraint') || error.message.includes('serviços')) {
+        alert('Não é possível excluir este veículo pois ele possui serviços cadastrados. Remova os serviços primeiro.');
+      } else {
+        alert('Erro ao excluir veículo: ' + error.message);
+      }
     }
   };
 
-  const handleFormSubmit = (vehicleData) => {
-    if (editingVehicle) {
+  const handleStatusChange = async (vehicle, newStatus) => {
+    try {
+      const updatedVehicle = { ...vehicle, status: newStatus };
+      await ApiService.updateVehicle(vehicle.id, updatedVehicle);
       dispatch({
         type: 'UPDATE_VEHICLE',
-        payload: { ...vehicleData, id: editingVehicle.id }
+        payload: updatedVehicle
       });
-    } else {
-      dispatch({ type: 'ADD_VEHICLE', payload: vehicleData });
+    } catch (error) {
+      console.error('Erro ao atualizar status do veículo:', error);
+      alert('Erro ao atualizar status: ' + error.message);
     }
-    setShowForm(false);
-    setEditingVehicle(null);
-  };
-
-  const handleStatusChange = (vehicle, newStatus) => {
-    dispatch({
-      type: 'UPDATE_VEHICLE',
-      payload: { ...vehicle, status: newStatus }
-    });
   };
 
   const getStatusBadge = (status) => {
@@ -224,7 +260,7 @@ const Vehicles = () => {
       {/* Lista de Veículos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scrollbar-hide">
         {filteredVehicles.map((vehicle) => {
-          const client = getClientById(vehicle.clientId);
+          const client = getClientById(vehicle.client_id);
           return (
             <div key={vehicle.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
               <div className="p-6">
@@ -235,7 +271,7 @@ const Vehicles = () => {
                       <Car className="h-5 w-5 text-white" />
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-lg font-semibold text-gray-900">{vehicle.plate}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">{vehicle.license_plate}</h3>
                       <p className="text-sm text-gray-600">{vehicle.brand} {vehicle.model}</p>
                     </div>
                   </div>
@@ -313,13 +349,18 @@ const Vehicles = () => {
                 <div className="space-y-3">
                   <div className="flex items-center text-sm text-gray-600">
                     <Gauge className="h-4 w-4 mr-2" />
-                    <span>Quilometragem: {vehicle.currentMileage?.toLocaleString()} km</span>
+                    <span>Quilometragem: {vehicle.mileage?.toLocaleString()} km</span>
                   </div>
                   
-                  {client && (
+                  {client ? (
                     <div className="flex items-center text-sm text-gray-600">
                       <User className="h-4 w-4 mr-2" />
                       <span>Cliente: {client.name}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <User className="h-4 w-4 mr-2" />
+                      <span className="italic">Veículo da frota (sem cliente)</span>
                     </div>
                   )}
                   
@@ -327,7 +368,7 @@ const Vehicles = () => {
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="h-4 w-4 mr-2" />
                       <span>
-                        Último serviço: {format(new Date(vehicle.lastService.date), 'dd/MM/yyyy', { locale: ptBR })}
+                        Último serviço: {vehicle.lastService.date ? vehicle.lastService.date.split('-').reverse().join('/') : 'Data inválida'}
                       </span>
                     </div>
                   )}
@@ -345,11 +386,31 @@ const Vehicles = () => {
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{vehicle.lastService.type}</p>
-                        <p className="text-xs text-gray-600">{vehicle.lastService.mileage?.toLocaleString()} km</p>
+                        <div className="text-sm font-medium text-gray-900">
+                          {Array.isArray(vehicle.lastService.type) ? (
+                            <div className="flex flex-wrap gap-1">
+                              {vehicle.lastService.type.slice(0, 2).map((type, index) => (
+                                <span
+                                  key={index}
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                >
+                                  {type}
+                                </span>
+                              ))}
+                              {vehicle.lastService.type.length > 2 && (
+                                <span className="text-xs text-gray-500">
+                                  +{vehicle.lastService.type.length - 2} mais
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span>{vehicle.lastService.type}</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">{vehicle.lastService.mileage?.toLocaleString()} km</p>
                       </div>
                       <span className="text-xs text-gray-600">
-                        {format(new Date(vehicle.lastService.date), 'dd/MM', { locale: ptBR })}
+                        {vehicle.lastService.date ? vehicle.lastService.date.split('-').slice(1).reverse().join('/') : 'Data inválida'}
                       </span>
                     </div>
                   </div>

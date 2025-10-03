@@ -1,1 +1,31 @@
 node_modules
+# Frontend build artefacts and coverage
+frontend/dist/
+frontend/coverage/
+frontend/lcov-report/
+frontend/coverage-final.json
+frontend/lcov.info
+# General coverage
+coverage/
+# Logs
+*.log
+backend/*.log
+frontend/*.log
+# OS junk files
+Thumbs.db
+.DS_Store
+# Temp and editor junk
+*.tmp
+*.swp
+*.swo
+*.orig
+*.rej
+*.bak
+*~
+# Emacs lockfiles
+#*#
+# Lint/cache
+.eslintcache
+# TypeScript build info
+*.tsbuildinfo
+tsconfig.tsbuildinfo

@@ -1,9 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Removido import de Google Fonts para evitar erros de rede
+   e depender apenas de fontes do sistema. Caso queira usar Inter,
+   considere hospedar localmente em /public/fonts e registrar via @font-face. */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* stylelint-disable at-rule-no-unknown */
+/* IDE: suprime avisos de @tailwind/@apply como desconhecidos.
+   Tailwind processa essas diretivas via PostCSS em build/dev. */
 @layer base {
   * {
     margin: 0;

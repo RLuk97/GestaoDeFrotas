@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useNotifications } from '../context/NotificationContext';
 import {
   Plus,
   Search,
-  Filter,
   Wrench,
   Car,
   Calendar,
@@ -15,28 +15,37 @@ import {
   Clock,
   AlertTriangle
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import ServiceForm from '../components/Services/ServiceForm';
 import Modal from '../components/Common/Modal';
+import ApiService from '../services/api';
 
 const Services = () => {
-  const { state, dispatch, getVehicleById } = useApp();
+  const { state, dispatch, getVehicleById, refreshVehicles } = useApp();
+  const { addServiceNotification } = useNotifications();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  
+  // Debug logs
+  console.log('=== Services Debug ===');
+  console.log('location.search:', location.search);
+  console.log('searchParams.get("vehicle"):', searchParams.get('vehicle'));
+  console.log('searchParams.get("openModal"):', searchParams.get('openModal'));
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [vehicleFilter, setVehicleFilter] = useState(searchParams.get('vehicle') || 'all');
+  const [vehicleFilter] = useState(searchParams.get('vehicle') || 'all');
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState(null);
-  const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   // Detectar parâmetro openModal na URL
   useEffect(() => {
+    console.log('=== Services useEffect openModal ===');
     const urlParams = new URLSearchParams(location.search);
+    console.log('urlParams.get("openModal"):', urlParams.get('openModal'));
     if (urlParams.get('openModal') === 'true') {
+      console.log('Abrindo modal automaticamente');
       handleAddService();
     }
   }, [location]);
@@ -45,10 +54,20 @@ const Services = () => {
   const filteredServices = state.services
     .filter(service => {
       const vehicle = getVehicleById(service.vehicleId);
+      
+      // Função para converter service.type em string para busca
+      const getServiceTypeString = (type) => {
+        if (!type) return '';
+        if (Array.isArray(type)) {
+          return type.join(' ').toLowerCase();
+        }
+        return String(type).toLowerCase();
+      };
+      
       const matchesSearch = 
-        service.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vehicle?.plate.toLowerCase().includes(searchTerm.toLowerCase());
+        getServiceTypeString(service.type).includes(searchTerm.toLowerCase()) ||
+        (service.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (vehicle?.plate || '').toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = statusFilter === 'all' || service.paymentStatus === statusFilter;
       const matchesVehicle = vehicleFilter === 'all' || service.vehicleId === parseInt(vehicleFilter);
@@ -68,6 +87,40 @@ const Services = () => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, vehicleFilter]);
 
+  // Fallback local para garantir que o card do veículo atualize imediatamente
+  const syncVehicleStatusLocally = (vehicleId, updatedService) => {
+    try {
+      if (!vehicleId) return;
+
+      // Substituir o serviço atualizado na lista local para avaliar corretamente
+      const servicesForVehicle = state.services
+        .map((s) => (updatedService && s.id === updatedService.id ? updatedService : s))
+        .filter((s) => (s.vehicleId || s.vehicle_id) === vehicleId);
+
+      if (servicesForVehicle.length === 0) return;
+
+      const allCompleted = servicesForVehicle.every((s) => {
+        const ps = String(s.paymentStatus || '').toLowerCase();
+        const st = String(s.status || '').toLowerCase();
+        return ps === 'completed' || st === 'concluído' || st === 'completed';
+      });
+
+      const vehicle = state.vehicles.find((v) => v.id === vehicleId);
+      if (!vehicle) return;
+
+      const nextStatus = allCompleted ? 'active' : 'maintenance';
+      if (vehicle.status !== nextStatus) {
+        dispatch({
+          type: 'UPDATE_VEHICLE',
+          payload: { ...vehicle, status: nextStatus },
+        });
+        console.log('Status do veículo ajustado localmente:', vehicleId, '=>', nextStatus);
+      }
+    } catch (e) {
+      console.warn('Falha no fallback local de status do veículo:', e);
+    }
+  };
+
   const handleAddService = () => {
     setEditingService(null);
     setShowForm(true);
@@ -78,78 +131,143 @@ const Services = () => {
     setShowForm(true);
   };
 
-  const handleFormSubmit = (serviceData) => {
-    if (editingService) {
-      dispatch({
-        type: 'UPDATE_SERVICE',
-        payload: { ...serviceData, id: editingService.id }
-      });
-    } else {
-      dispatch({ type: 'ADD_SERVICE', payload: serviceData });
+  const handleFormSubmit = async (serviceData) => {
+    try {
+      console.log('=== INÍCIO handleFormSubmit ===');
+      console.log('editingService:', editingService);
+      console.log('serviceData recebido:', serviceData);
+      
+      if (editingService) {
+        // Atualizar serviço existente
+        console.log('Atualizando serviço existente...');
+        const response = await ApiService.updateService(editingService.id, serviceData);
+        console.log('Resposta da API (update):', response);
+        
+        const updatedService = response.data || response;
+        console.log('Serviço atualizado extraído:', updatedService);
+        
+        dispatch({
+          type: 'UPDATE_SERVICE',
+          payload: updatedService
+        });
+        
+        // Adicionar notificação de serviço editado (true = edição)
+        addServiceNotification(serviceData, true);
+
+        // Sincronizar status do veículo após edição de serviço
+        try {
+          const vehicleIdForSync = updatedService?.vehicleId || serviceData?.vehicle_id;
+          if (vehicleIdForSync) {
+            const updatedVehicle = await ApiService.getVehicleById(vehicleIdForSync);
+            if (updatedVehicle) {
+              dispatch({
+                type: 'UPDATE_VEHICLE',
+                payload: updatedVehicle
+              });
+              console.log('Veículo sincronizado após edição de serviço:', updatedVehicle);
+            }
+          } else {
+            // Fallback: recarregar lista completa de veículos
+            await refreshVehicles();
+          }
+        } catch (vehErr) {
+          console.warn('Falha ao sincronizar veículo após edição de serviço, aplicando fallback:', vehErr);
+          await refreshVehicles();
+        }
+        // Garantir atualização imediata do card do veículo na UI
+        const vehicleIdForLocalSync = updatedService?.vehicleId || serviceData?.vehicle_id;
+        syncVehicleStatusLocally(vehicleIdForLocalSync, updatedService);
+        
+        console.log('Serviço atualizado com sucesso');
+      } else {
+        console.log('🚀 === CRIANDO NOVO SERVIÇO ===');
+        const response = await ApiService.createService(serviceData);
+        console.log('📡 Resposta completa da API:', response);
+        
+        const newService = response.data || response;
+        console.log('📋 Novo serviço extraído:', newService);
+        console.log('🚗 vehicleId no serviço (camelCase):', newService.vehicleId);
+        console.log('🚗 vehicle_id no serviço (snake_case):', newService.vehicle_id);
+        
+        console.log('📤 Despachando ADD_SERVICE com payload:', newService);
+        dispatch({
+          type: 'ADD_SERVICE',
+          payload: newService
+        });
+        
+        // Adicionar notificação de serviço criado (false = criação)
+        addServiceNotification(serviceData, false);
+        
+        // Recarregar dados de veículos para atualizar status e quilometragem
+        await refreshVehicles();
+        
+        console.log('Novo serviço criado com sucesso');
+      }
+      
+      setShowForm(false);
+      setEditingService(null);
+      console.log('=== FIM handleFormSubmit ===');
+    } catch (error) {
+      console.error('Erro ao salvar serviço:', error);
+      alert('Erro ao salvar serviço: ' + error.message);
     }
-    setShowForm(false);
-    setEditingService(null);
-    
-    // Reset filtros para mostrar todos os serviços após adicionar/editar
-    setVehicleFilter('all');
-    setStatusFilter('all');
-    setSearchTerm('');
-    
-    // Limpar parâmetros da URL
-    window.history.replaceState({}, document.title, window.location.pathname);
   };
 
-  const handlePaymentStatusChange = (serviceId, newStatus) => {
-    const service = state.services.find(s => s.id === serviceId);
-    if (service) {
+  const handlePaymentStatusChange = async (serviceId, newStatus) => {
+    try {
+      console.log('=== handlePaymentStatusChange ===');
+      console.log('serviceId:', serviceId);
+      console.log('newStatus:', newStatus);
+      
+      // Usar o novo método específico para atualização de status
+      const response = await ApiService.updateServiceStatus(serviceId, newStatus);
+      console.log('Resposta da API:', response);
+      
+      const updatedService = response.data || response;
+      console.log('Serviço atualizado:', updatedService);
+      
       dispatch({
         type: 'UPDATE_SERVICE',
-        payload: { ...service, paymentStatus: newStatus }
+        payload: updatedService
       });
+
+      // Sincronizar status do veículo no contexto assim que o serviço for concluído
+      if (updatedService && updatedService.vehicleId) {
+        try {
+          const updatedVehicle = await ApiService.getVehicleById(updatedService.vehicleId);
+          if (updatedVehicle) {
+            dispatch({
+              type: 'UPDATE_VEHICLE',
+              payload: updatedVehicle
+            });
+            console.log('Veículo sincronizado após atualização de serviço:', updatedVehicle);
+          }
+        } catch (vehErr) {
+          console.warn('Falha ao sincronizar veículo após status de serviço:', vehErr);
+        }
+        // Fallback local para refletir imediatamente no card
+        syncVehicleStatusLocally(updatedService.vehicleId, updatedService);
+      }
+      
+      console.log('Status atualizado com sucesso');
+    } catch (error) {
+      console.error('Erro ao atualizar status de pagamento:', error);
+      alert('Erro ao atualizar status: ' + error.message);
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'paid':
-        return (
-          <span className="status-paid flex items-center">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Pago
-          </span>
-        );
-      case 'pending':
-        return (
-          <span className="status-pending flex items-center">
-            <Clock className="h-3 w-3 mr-1" />
-            Pendente
-          </span>
-        );
-      case 'partial':
-        return (
-          <span className="status-partial flex items-center">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            Parcial
-          </span>
-        );
-      default:
-        return (
-          <span className="status-pending flex items-center">
-            <Clock className="h-3 w-3 mr-1" />
-            Pendente
-          </span>
-        );
-    }
-  };
+
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'paid':
+      case 'completed':
         return <CheckCircle className="h-5 w-5 text-green-600" />;
+      case 'in_progress':
+        return <AlertTriangle className="h-5 w-5 text-blue-600" />;
       case 'pending':
         return <Clock className="h-5 w-5 text-yellow-600" />;
-      case 'partial':
-        return <AlertTriangle className="h-5 w-5 text-blue-600" />;
+      case 'cancelled':
+        return <AlertTriangle className="h-5 w-5 text-red-600" />;
       default:
         return <Clock className="h-5 w-5 text-yellow-600" />;
     }
@@ -157,11 +275,12 @@ const Services = () => {
 
   const stats = {
     total: filteredServices.length,
-    paid: filteredServices.filter(s => s.paymentStatus === 'paid').length,
+    completed: filteredServices.filter(s => s.paymentStatus === 'completed').length,
     pending: filteredServices.filter(s => s.paymentStatus === 'pending').length,
-    partial: filteredServices.filter(s => s.paymentStatus === 'partial').length,
-    totalRevenue: filteredServices.reduce((sum, s) => sum + (s.totalValue || 0), 0),
-    paidRevenue: filteredServices.filter(s => s.paymentStatus === 'paid').reduce((sum, s) => sum + (s.totalValue || 0), 0)
+    in_progress: filteredServices.filter(s => s.paymentStatus === 'in_progress').length,
+    cancelled: filteredServices.filter(s => s.paymentStatus === 'cancelled').length,
+    totalRevenue: filteredServices.reduce((sum, s) => sum + (parseFloat(s.totalValue) || 0), 0),
+    completedRevenue: filteredServices.filter(s => s.paymentStatus === 'completed').reduce((sum, s) => sum + (parseFloat(s.totalValue) || 0), 0)
   };
 
   return (
@@ -200,8 +319,8 @@ const Services = () => {
               <CheckCircle className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-0.5">Pagos</p>
-              <p className="text-xl font-bold text-gray-900">{stats.paid}</p>
+              <p className="text-sm text-gray-600 mb-0.5">Processados</p>
+              <p className="text-xl font-bold text-gray-900">{stats.completed}</p>
             </div>
           </div>
         </div>
@@ -211,8 +330,8 @@ const Services = () => {
               <Clock className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-0.5">Pendentes</p>
-              <p className="text-xl font-bold text-gray-900">{stats.pending + stats.partial}</p>
+              <p className="text-sm text-gray-600 mb-0.5">Em Análise</p>
+              <p className="text-xl font-bold text-gray-900">{stats.pending + stats.in_progress}</p>
             </div>
           </div>
         </div>
@@ -222,7 +341,7 @@ const Services = () => {
               <DollarSign className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-0.5">Receita Total</p>
+              <p className="text-sm text-gray-600 mb-0.5">Despesa Total</p>
               <p className="text-xl font-bold text-gray-900">R$ {stats.totalRevenue.toFixed(2)}</p>
             </div>
           </div>
@@ -251,9 +370,10 @@ const Services = () => {
               className="min-w-[140px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
             >
               <option value="all">Todos Status</option>
-              <option value="paid">Pagos</option>
+              <option value="completed">Concluídos</option>
+              <option value="in_progress">Em Andamento</option>
               <option value="pending">Pendentes</option>
-              <option value="partial">Parciais</option>
+              <option value="cancelled">Cancelados</option>
             </select>
           </div>
         </div>
@@ -313,9 +433,22 @@ const Services = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedServices
-                  .sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate))
+                  .sort((a, b) => {
+                    const dateA = new Date(a.entryDate);
+                    const dateB = new Date(b.entryDate);
+                    // Verificar se as datas são válidas antes de comparar
+                    if (isNaN(dateA) && isNaN(dateB)) return 0;
+                    if (isNaN(dateA)) return 1;
+                    if (isNaN(dateB)) return -1;
+                    return dateB - dateA;
+                  })
                   .map((service) => {
                     const vehicle = getVehicleById(service.vehicleId);
+                    // Usar dados relacionados da API se disponíveis, senão usar dados do estado local
+                    const vehiclePlate = service.vehiclePlate || service.vehicle_license_plate || vehicle?.plate;
+                    const vehicleBrand = service.vehicleBrand || service.vehicle_brand || vehicle?.brand;
+                    const vehicleModel = service.vehicleModel || service.vehicle_model || vehicle?.model;
+                    
                     return (
                       <tr key={service.id} className="hover:bg-gray-50 transition-colors duration-150">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -324,33 +457,48 @@ const Services = () => {
                               <Car className="h-4 w-4 text-white" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">{vehicle?.plate}</p>
-                              <p className="text-sm text-gray-500">{vehicle?.brand} {vehicle?.model}</p>
+                              <p className="text-sm font-medium text-gray-900">{vehiclePlate}</p>
+                              <p className="text-sm text-gray-500">{vehicleBrand} {vehicleModel}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div>
-                            <p className="text-sm font-medium text-gray-900">{service.type}</p>
-                            <p className="text-xs text-gray-500">{service.mileage?.toLocaleString()} km</p>
+                            <div className="text-sm font-medium text-gray-900">
+                              {Array.isArray(service.type) ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {service.type.map((type, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                    >
+                                      {type}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span>{service.type}</span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">{service.mileage?.toLocaleString()} km</p>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
                             <div className="flex items-center mb-1">
                               <Calendar className="h-4 w-4 text-gray-400 mr-1" />
-                              <span>Entrada: {format(new Date(service.entryDate), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                              <span>Entrada: {service.entryDate ? service.entryDate.split('-').reverse().join('/') : 'Data inválida'}</span>
                             </div>
                             {service.exitDate && (
                               <div className="flex items-center">
                                 <Calendar className="h-4 w-4 text-gray-400 mr-1" />
-                                <span>Saída: {format(new Date(service.exitDate), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                                <span>Saída: {service.exitDate.split('-').reverse().join('/')}</span>
                               </div>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <p className="text-sm font-medium text-gray-900">R$ {service.totalValue.toFixed(2)}</p>
+                          <p className="text-sm font-medium text-gray-900">R$ {(parseFloat(service.totalValue) || 0).toFixed(2)}</p>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-2">
@@ -361,8 +509,9 @@ const Services = () => {
                               className="text-sm border-0 bg-transparent focus:ring-0 font-medium text-gray-900 cursor-pointer"
                             >
                               <option value="pending">Pendente</option>
-                              <option value="partial">Parcial</option>
-                              <option value="paid">Pago</option>
+                              <option value="in_progress">Em Andamento</option>
+                              <option value="completed">Concluído</option>
+                              <option value="cancelled">Cancelado</option>
                             </select>
                           </div>
                         </td>
@@ -480,10 +629,12 @@ const Services = () => {
             setShowForm(false);
             setEditingService(null);
           }}
-          preselectedVehicleId={
-            vehicleFilter !== 'all' ? parseInt(vehicleFilter) : 
-            (searchParams.get('vehicle') ? parseInt(searchParams.get('vehicle')) : null)
-          }
+          preselectedVehicleId={(() => {
+            const preselectedId = vehicleFilter !== 'all' ? vehicleFilter : 
+              (searchParams.get('vehicle') || null);
+            
+            return preselectedId;
+          })()}
         />
       </Modal>
     </div>

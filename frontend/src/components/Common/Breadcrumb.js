@@ -9,10 +9,18 @@ const Breadcrumb = () => {
   const breadcrumbNameMap = {
     '': 'Dashboard',
     'dashboard': 'Dashboard',
+    'rentals': 'Dashboard Financeiro',
+    'default-report': 'Relatório de Inadimplência',
+    'payment-control': 'Controle de Pagamentos',
+    'contract-history': 'Histórico de Contratos',
+  'vehicle-transfers': 'Transferências de Veículos',
+  'partial-payments': 'Pagamentos Parciais',
+  'outstanding-balances': 'Saldos Devedores',
     'vehicles': 'Veículos',
     'services': 'Serviços',
     'parts': 'Peças',
-    'history': 'Histórico'
+    'history': 'Histórico',
+    'clients': 'Clientes'
   };
 
   const getBreadcrumbName = (pathname, index) => {

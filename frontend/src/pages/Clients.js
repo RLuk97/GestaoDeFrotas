@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { Edit, Trash2, Eye, Search, Users, Plus, User, Car, Wrench, ArrowLeft, UserCheck, UserX } from 'lucide-react';
+import { useNotifications } from '../context/NotificationContext';
+import { Edit, Trash2, Eye, Search, Users, Plus, User, Car, Wrench, ArrowLeft, UserCheck, UserX, History } from 'lucide-react';
 import ClientForm from '../components/Common/ClientForm';
 import Modal from '../components/Common/Modal';
+import ApiService from '../services/api';
 
 const Clients = () => {
   const { state, dispatch } = useApp();
+  const { addClientNotification, addClientDeleteNotification } = useNotifications();
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,9 +25,9 @@ const Clients = () => {
   const inactiveClients = clients.filter(client => client.status === 'inactive').length;
 
   const filteredClients = clients.filter(client => {
-    const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.phone.includes(searchTerm);
+    const matchesSearch = (client.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (client.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (client.phone || '').includes(searchTerm);
     
     const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
     
@@ -42,27 +45,55 @@ const Clients = () => {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  const handleSubmit = (clientData) => {
-    if (editingClient) {
-      dispatch({ 
-        type: 'UPDATE_CLIENT', 
-        payload: {
-          ...clientData,
-          id: editingClient.id,
-          updatedAt: new Date().toISOString()
-        }
-      });
-    } else {
-      dispatch({ 
-        type: 'ADD_CLIENT', 
-        payload: {
-          ...clientData,
-          createdAt: new Date().toISOString()
-        }
-      });
+  const handleSubmit = async (clientData) => {
+    try {
+      if (editingClient) {
+        // Atualizar cliente existente
+        const response = await ApiService.updateClient(editingClient.id, clientData);
+        dispatch({ 
+          type: 'UPDATE_CLIENT', 
+          payload: {
+            ...response.data,
+            id: editingClient.id,
+            updatedAt: new Date().toISOString()
+          }
+        });
+        addClientNotification({ ...clientData, name: clientData.name }, true); // true para indicar edição
+      } else {
+        // Criar novo cliente
+        const response = await ApiService.createClient(clientData);
+        dispatch({ 
+          type: 'ADD_CLIENT', 
+          payload: {
+            ...response.data,
+            createdAt: new Date().toISOString()
+          }
+        });
+        // Adicionar notificação de novo cliente
+        addClientNotification(clientData, false); // false para indicar criação
+      }
+      setShowForm(false);
+      setEditingClient(null);
+    } catch (error) {
+      console.error('Erro ao salvar cliente:', error);
+      
+      // Tratamento específico para diferentes tipos de erro
+      let errorMessage = 'Erro ao salvar cliente';
+      
+      if (error.message) {
+         if (error.message.includes('Email já cadastrado') || error.message.includes('já existe um cliente com este email')) {
+           errorMessage = 'Este email já está cadastrado para outro cliente. Por favor, use um email diferente.';
+         } else if (error.message.includes('CPF/CNPJ já cadastrado') || error.message.includes('já existe um cliente com este CPF/CNPJ')) {
+           errorMessage = 'Este CPF/CNPJ já está cadastrado para outro cliente. Por favor, verifique o documento informado.';
+         } else if (error.message.includes('Dados inválidos')) {
+           errorMessage = 'Por favor, verifique os dados informados e tente novamente.';
+         } else {
+           errorMessage = error.message;
+         }
+       }
+      
+      alert(errorMessage);
     }
-    setShowForm(false);
-    setEditingClient(null);
   };
 
   const handleEdit = (client) => {
@@ -96,14 +127,34 @@ const Clients = () => {
     setShowForm(true);
   };
 
-  const handleDeleteClient = (clientId) => {
+  const handleDeleteClient = async (clientId) => {
     if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
-      dispatch({ type: 'DELETE_CLIENT', payload: clientId });
+      try {
+        // Buscar dados do cliente antes de excluir para a notificação
+        const clientToDelete = state.clients.find(client => client.id === clientId);
+        
+        await ApiService.deleteClient(clientId);
+        dispatch({ type: 'DELETE_CLIENT', payload: clientId });
+        
+        // Adicionar notificação de exclusão
+        if (clientToDelete) {
+          addClientDeleteNotification(clientToDelete);
+        }
+        
+        alert('Cliente excluído com sucesso!');
+      } catch (error) {
+        console.error('Erro ao excluir cliente:', error);
+        if (error.message.includes('constraint') || error.message.includes('veículos')) {
+          alert('Não é possível excluir este cliente pois ele possui veículos cadastrados. Remova os veículos primeiro.');
+        } else {
+          alert('Erro ao excluir cliente: ' + error.message);
+        }
+      }
     }
   };
 
   const getClientVehicles = (clientId) => {
-    return state.vehicles.filter(vehicle => vehicle.clientId === clientId);
+    return state.vehicles.filter(vehicle => vehicle.client_id === clientId);
   };
 
   const paginatedClients = currentClients;
@@ -297,6 +348,13 @@ const Clients = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
+                          <Link
+                            to={`/clients/${client.id}/history`}
+                            className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                            title="Ver Histórico"
+                          >
+                            <History className="h-4 w-4" />
+                          </Link>
                           <button
                             onClick={() => handleEditClient(client)}
                             className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"

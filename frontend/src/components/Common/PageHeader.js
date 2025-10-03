@@ -1,58 +1,12 @@
 import React, { useState } from 'react';
 import { Bell, Search, User, Settings, X, AlertTriangle, Wrench, DollarSign, FileText, Clock } from 'lucide-react';
+import { useNotifications } from '../../context/NotificationContext';
 
 const PageHeader = ({ title, subtitle, showSearch = false, showNotifications = true, showUserMenu = true }) => {
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
-
-  // Dados simulados de notificações para gestão de frotas
-  const notifications = [
-    {
-      id: 1,
-      type: 'maintenance',
-      title: 'Manutenção Vencida',
-      message: 'Veículo ABC-1234 está com manutenção vencida há 5 dias',
-      time: '2 horas atrás',
-      icon: Wrench,
-      color: 'text-amber-500',
-      bgColor: 'bg-amber-50',
-      unread: true
-    },
-    {
-      id: 2,
-      type: 'payment',
-      title: 'Pagamento Pendente',
-      message: 'Serviço #1234 aguarda pagamento de R$ 850,00',
-      time: '4 horas atrás',
-      icon: DollarSign,
-      color: 'text-red-500',
-      bgColor: 'bg-red-50',
-      unread: true
-    },
-    {
-      id: 3,
-      type: 'service',
-      title: 'Serviço Concluído',
-      message: 'Manutenção do veículo XYZ-5678 foi finalizada',
-      time: '1 dia atrás',
-      icon: FileText,
-      color: 'text-green-500',
-      bgColor: 'bg-green-50',
-      unread: false
-    },
-    {
-      id: 4,
-      type: 'reminder',
-      title: 'Lembrete de Revisão',
-      message: 'Veículo DEF-9012 precisa de revisão em 3 dias',
-      time: '2 dias atrás',
-      icon: Clock,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-50',
-      unread: false
-    }
-  ];
-
-  const unreadCount = notifications.filter(n => n.unread).length;
+  
+  // Usar o contexto de notificações
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   return (
     <div className="sticky top-0 z-30 bg-brand-primary border-b border-primary-700 shadow-sm h-16">
       <div className="px-4 sm:px-6 lg:px-8 h-full">
@@ -93,7 +47,13 @@ const PageHeader = ({ title, subtitle, showSearch = false, showNotifications = t
               <div className="relative">
                 <button 
                   className="p-2 text-primary-100 hover:text-white hover:bg-primary-700 rounded-full transition-colors relative"
-                  onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
+                  onClick={() => {
+                    setShowNotificationDropdown(!showNotificationDropdown);
+                    // Marcar todas as notificações como lidas quando abrir o dropdown
+                    if (!showNotificationDropdown && unreadCount > 0) {
+                      markAllAsRead();
+                    }
+                  }}
                 >
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
@@ -133,6 +93,7 @@ const PageHeader = ({ title, subtitle, showSearch = false, showNotifications = t
                               className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
                                 notification.unread ? 'bg-blue-50' : ''
                               }`}
+                              onClick={() => markAsRead(notification.id)}
                             >
                               <div className="flex items-start space-x-3">
                                 <div className={`p-2 rounded-full ${notification.bgColor}`}>

@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Menu,
   X,
   Car,
   Wrench,
   Package,
   History,
-  Settings,
   LayoutDashboard,
   Users,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  DollarSign,
+  AlertTriangle,
+  CreditCard,
+  FileText,
+  ArrowRightLeft,
+  Receipt,
+  AlertCircle
 } from 'lucide-react';
 import Breadcrumb from '../Common/Breadcrumb';
 import PageHeader from '../Common/PageHeader';
@@ -20,9 +27,11 @@ import Logo from '../Common/Logo';
 const Layout = ({ children, pageTitle, pageSubtitle }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [showFutureUpgrade, setShowFutureUpgrade] = useState(true);
   const location = useLocation();
 
-  const navigation = [
+  // Módulos ativos
+  const activeNavigation = [
     {
       name: 'Dashboard',
       href: '/dashboard',
@@ -46,18 +55,73 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
       href: '/services',
       icon: Wrench,
       current: location.pathname.startsWith('/services')
+    }
+  ];
+
+  // Módulos de upgrade futuro
+  const futureUpgradeNavigation = [
+    {
+      name: 'Dashboard Financeiro',
+      href: '/rentals',
+      icon: DollarSign,
+      current: location.pathname.startsWith('/rentals'),
+      disabled: true
+    },
+    {
+      name: 'Relatório de Inadimplência',
+      href: '/default-report',
+      icon: AlertTriangle,
+      current: location.pathname.startsWith('/default-report'),
+      disabled: true
+    },
+    {
+      name: 'Controle de Pagamentos',
+      href: '/payment-control',
+      icon: CreditCard,
+      current: location.pathname.startsWith('/payment-control'),
+      disabled: true
+    },
+    {
+      name: 'Histórico de Contratos',
+      href: '/contract-history',
+      icon: FileText,
+      current: location.pathname.startsWith('/contract-history'),
+      disabled: true
+    },
+    {
+      name: 'Transferências',
+      href: '/vehicle-transfers',
+      icon: ArrowRightLeft,
+      current: location.pathname.startsWith('/vehicle-transfers'),
+      disabled: true
+    },
+    {
+      name: 'Pagamentos Parciais',
+      href: '/partial-payments',
+      icon: Receipt,
+      current: location.pathname.startsWith('/partial-payments'),
+      disabled: true
+    },
+    {
+      name: 'Saldos Devedores',
+      href: '/outstanding-balances',
+      icon: AlertCircle,
+      current: location.pathname.startsWith('/outstanding-balances'),
+      disabled: true
     },
     {
       name: 'Peças',
       href: '/parts',
       icon: Package,
-      current: location.pathname.startsWith('/parts')
+      current: location.pathname.startsWith('/parts'),
+      disabled: true
     },
     {
       name: 'Histórico',
       href: '/history',
       icon: History,
-      current: location.pathname.startsWith('/history')
+      current: location.pathname.startsWith('/history'),
+      disabled: true
     }
   ];
 
@@ -78,7 +142,8 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
           <nav className={`flex-1 space-y-1 px-3 py-4 ${
             sidebarExpanded ? 'bg-brand-background' : 'bg-gray-900'
           }`}>
-            {navigation.map((item) => {
+            {/* Módulos Ativos */}
+            {activeNavigation.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -98,6 +163,48 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
                   />
                   {item.name}
                 </Link>
+              );
+            })}
+
+            {/* Separador e Título para Upgrade Futuro */}
+            <div className="pt-6 pb-2">
+              <div className="border-t border-gray-300 mb-4"></div>
+              <div className="px-3 flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Upgrade Futuro
+                </h3>
+                <button
+                  type="button"
+                  aria-label={showFutureUpgrade ? 'Recolher módulos' : 'Expandir módulos'}
+                  className="p-1 rounded hover:bg-gray-200 text-gray-600"
+                  onClick={() => setShowFutureUpgrade(prev => !prev)}
+                >
+                  {showFutureUpgrade ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Módulos de Upgrade Futuro */}
+            {showFutureUpgrade && futureUpgradeNavigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.name}
+                  className="group grid grid-cols-[1fr_auto] items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 text-gray-400 cursor-not-allowed opacity-60"
+                  title="Disponível em versão futura"
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-5 w-5 flex-shrink-0 text-gray-400" />
+                    <span>{item.name}</span>
+                  </div>
+                  <span className="inline-flex items-center justify-center bg-gray-200 text-gray-600 text-xs font-medium rounded-full h-5 px-2 w-20 justify-self-end">
+                    Em breve
+                  </span>
+                </div>
               );
             })}
           </nav>
@@ -144,7 +251,8 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
           <nav className={`flex-1 space-y-1 px-3 py-4 ${
             sidebarExpanded ? 'bg-brand-background' : 'bg-gray-900'
           }`}>
-            {navigation.map((item) => {
+            {/* Módulos Ativos */}
+            {activeNavigation.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -170,6 +278,60 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
                   />
                   {sidebarExpanded && item.name}
                 </Link>
+              );
+            })}
+
+            {/* Separador e Título para Upgrade Futuro */}
+            {sidebarExpanded && (
+              <div className="pt-6 pb-2">
+                <div className="border-t border-gray-300 mb-4"></div>
+                <div className="px-3 flex items-center justify-between">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Upgrade Futuro
+                  </h3>
+                  <button
+                    type="button"
+                    aria-label={showFutureUpgrade ? 'Recolher módulos' : 'Expandir módulos'}
+                    className="p-1 rounded hover:bg-gray-200 text-gray-600"
+                    onClick={() => setShowFutureUpgrade(prev => !prev)}
+                  >
+                    {showFutureUpgrade ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Módulos de Upgrade Futuro */}
+            {showFutureUpgrade && futureUpgradeNavigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.name}
+                  className={`group ${sidebarExpanded ? 'grid grid-cols-[1fr_auto] items-center' : 'flex justify-center items-center'} px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 cursor-not-allowed opacity-60 ${
+                    sidebarExpanded 
+                      ? 'text-gray-400' 
+                      : 'text-gray-500'
+                  }`}
+                  title={sidebarExpanded ? "Disponível em versão futura" : `${item.name} - Disponível em versão futura`}
+                >
+                  <div className={`flex items-center ${sidebarExpanded ? 'gap-3' : ''}`}>
+                    <Icon 
+                      className={`${sidebarExpanded ? '' : 'mx-auto'} h-5 w-5 flex-shrink-0 text-gray-400`} 
+                    />
+                    {sidebarExpanded && (
+                      <span>{item.name}</span>
+                    )}
+                  </div>
+                  {sidebarExpanded && (
+                    <span className="inline-flex items-center justify-center bg-gray-200 text-gray-600 text-xs font-medium rounded-full h-5 px-2 w-20 justify-self-end">
+                      Em breve
+                    </span>
+                  )}
+                </div>
               );
             })}
           </nav>

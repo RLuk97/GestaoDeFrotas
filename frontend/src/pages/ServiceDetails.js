@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useNotifications } from '../context/NotificationContext';
 import {
   ArrowLeft,
   Edit,
@@ -17,6 +16,7 @@ import {
   AlertCircle,
   XCircle
 } from 'lucide-react';
+import ApiService from '../services/api';
 import Modal from '../components/Common/Modal';
 import ServiceForm from '../components/Services/ServiceForm';
 
@@ -24,10 +24,11 @@ const ServiceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { state, dispatch } = useApp();
+  const { addServiceDeleteNotification, addServiceNotification } = useNotifications();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const service = state.services.find(s => s.id === parseInt(id));
+  const service = state.services.find(s => s.id === id);
   const vehicle = service ? state.vehicles.find(v => v.id === service.vehicleId) : null;
 
   if (!service) {
@@ -48,27 +49,78 @@ const ServiceDetails = () => {
     );
   }
 
-  const handleEditService = (serviceData) => {
-    dispatch({
-      type: 'UPDATE_SERVICE',
-      payload: { id: service.id, ...serviceData }
-    });
-    setShowEditModal(false);
+  const handleEditService = async (serviceData) => {
+    try {
+      console.log('=== ServiceDetails.handleEditService ===');
+      console.log('Dados para atualizar:', serviceData);
+      
+      // Chamar a API para atualizar no backend
+      const response = await ApiService.updateService(service.id, serviceData);
+      console.log('Resposta completa da API:', response);
+      
+      // A API retorna { success: true, message: '...', data: service }
+      const updatedService = response.data || response;
+      console.log('Serviço atualizado extraído:', updatedService);
+      
+      // Atualizar no contexto global
+      dispatch({
+        type: 'UPDATE_SERVICE',
+        payload: updatedService
+      });
+      
+      // Sincronizar status do veículo imediatamente após a edição do serviço
+      try {
+        const vehicleIdForSync = updatedService?.vehicleId || serviceData?.vehicle_id || service?.vehicleId;
+        if (vehicleIdForSync) {
+          const updatedVehicle = await ApiService.getVehicleById(vehicleIdForSync);
+          if (updatedVehicle) {
+            dispatch({
+              type: 'UPDATE_VEHICLE',
+              payload: updatedVehicle
+            });
+            console.log('Veículo sincronizado após edição em ServiceDetails:', updatedVehicle);
+          }
+        }
+      } catch (vehErr) {
+        console.warn('Falha ao sincronizar veículo após edição de serviço em ServiceDetails:', vehErr);
+      }
+
+      // Adicionar notificação de serviço atualizado
+      addServiceNotification(serviceData, true);
+      setShowEditModal(false);
+      
+      console.log('Estado local atualizado com sucesso');
+    } catch (error) {
+      console.error('Erro ao atualizar serviço:', error);
+      alert('Erro ao atualizar serviço: ' + error.message);
+    }
   };
 
-  const handleDeleteService = () => {
-    dispatch({ type: 'DELETE_SERVICE', payload: service.id });
-    navigate('/services');
+  const handleDeleteService = async () => {
+    try {
+      await ApiService.deleteService(service.id);
+      
+      // Adicionar notificação de exclusão
+      addServiceDeleteNotification(service);
+      
+      dispatch({ type: 'DELETE_SERVICE', payload: service.id });
+      navigate('/services');
+    } catch (error) {
+      console.error('Erro ao deletar serviço:', error);
+      alert('Erro ao deletar serviço: ' + error.message);
+    }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'paid':
+      case 'completed':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'partial':
-        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+      case 'in_progress':
+        return <AlertCircle className="h-5 w-5 text-blue-500" />;
       case 'pending':
-        return <Clock className="h-5 w-5 text-red-500" />;
+        return <Clock className="h-5 w-5 text-yellow-500" />;
+      case 'cancelled':
+        return <AlertCircle className="h-5 w-5 text-red-500" />;
       default:
         return <Clock className="h-5 w-5 text-gray-500" />;
     }
@@ -76,12 +128,14 @@ const ServiceDetails = () => {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'paid':
-        return '✅ Pago';
-      case 'partial':
-        return '💸 Parcialmente Pago';
+      case 'completed':
+        return '✅ Concluído';
+      case 'in_progress':
+        return '🔧 Em Andamento';
       case 'pending':
-        return '⚠️ Pendente';
+        return '📋 Pendente';
+      case 'cancelled':
+        return '❌ Cancelado';
       default:
         return 'Indefinido';
     }
@@ -89,19 +143,21 @@ const ServiceDetails = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'paid':
+      case 'completed':
         return 'bg-green-100 text-green-800';
-      case 'partial':
-        return 'bg-yellow-100 text-yellow-800';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800';
       case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const partsTotal = service.parts?.reduce((sum, part) => sum + (part.quantity * part.unitPrice), 0) || 0;
-  const laborCost = service.totalValue - partsTotal;
+  const partsTotal = service.parts?.reduce((sum, part) => sum + ((parseFloat(part.quantity) || 0) * (parseFloat(part.unitPrice) || 0)), 0) || 0;
+  const laborCost = (parseFloat(service.totalValue) || 0) - partsTotal;
 
   return (
     <div className="min-h-screen bg-brand-surface">
@@ -175,7 +231,22 @@ const ServiceDetails = () => {
                     <label className="block text-sm font-medium text-brand-muted mb-1">
                       Tipo de Serviço
                     </label>
-                    <p className="text-brand-primary font-medium">{service.type}</p>
+                    <div className="text-brand-primary font-medium">
+                      {Array.isArray(service.type) ? (
+                        <div className="flex flex-wrap gap-2">
+                          {service.type.map((type, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                            >
+                              {type}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span>{service.type}</span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-brand-muted mb-1">
@@ -194,7 +265,10 @@ const ServiceDetails = () => {
                     </label>
                     <p className="text-brand-primary flex items-center">
                       <Calendar className="h-4 w-4 mr-2 text-brand-muted" />
-                      {format(new Date(service.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
+                      {service.entryDate 
+                        ? service.entryDate.split('-').reverse().join('/')
+                        : 'Data inválida'
+                      }
                     </p>
                   </div>
                   <div>
@@ -203,8 +277,8 @@ const ServiceDetails = () => {
                     </label>
                     <p className="text-brand-primary flex items-center">
                       <Calendar className="h-4 w-4 mr-2 text-brand-muted" />
-                      {service.exitDate 
-                        ? format(new Date(service.exitDate), 'dd/MM/yyyy', { locale: ptBR })
+                      {service.exitDate
+                        ? service.exitDate.split('-').reverse().join('/')
                         : 'Não definida'
                       }
                     </p>
@@ -221,7 +295,7 @@ const ServiceDetails = () => {
                     </label>
                     <p className="text-brand-primary font-bold text-lg flex items-center">
                       <DollarSign className="h-4 w-4 mr-1 text-brand-muted" />
-                      R$ {service.totalValue?.toFixed(2)}
+                      R$ {(parseFloat(service.totalValue) || 0).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -274,10 +348,10 @@ const ServiceDetails = () => {
                               {part.quantity}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap text-sm text-brand-primary">
-                              R$ {part.unitPrice?.toFixed(2)}
+                              R$ {(parseFloat(part.unitPrice) || 0).toFixed(2)}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-brand-primary">
-                              R$ {(part.quantity * part.unitPrice)?.toFixed(2)}
+                              R$ {((parseFloat(part.quantity) || 0) * (parseFloat(part.unitPrice) || 0)).toFixed(2)}
                             </td>
                           </tr>
                         ))}
@@ -316,7 +390,7 @@ const ServiceDetails = () => {
                       <label className="block text-sm font-medium text-brand-muted">
                         Placa
                       </label>
-                      <p className="text-brand-primary font-mono font-bold">{vehicle.plate}</p>
+                      <p className="text-brand-primary font-mono font-bold">{vehicle.license_plate}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-brand-muted">
@@ -372,7 +446,7 @@ const ServiceDetails = () => {
                   <div className="border-t border-brand-border pt-3">
                     <div className="flex justify-between">
                       <span className="text-lg font-medium text-brand-primary">Total:</span>
-                      <span className="text-lg font-bold text-brand-primary">R$ {service.totalValue?.toFixed(2)}</span>
+                      <span className="text-lg font-bold text-brand-primary">R$ {(parseFloat(service.totalValue) || 0).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>

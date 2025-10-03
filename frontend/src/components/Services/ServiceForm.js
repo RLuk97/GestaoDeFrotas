@@ -3,25 +3,79 @@ import { useApp } from '../../context/AppContext';
 
 const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
   const { state } = useApp();
+  
+
+  
   const [formData, setFormData] = useState({
-    vehicleId: preselectedVehicleId || '',
-    type: '',
-    customType: '',
-    description: '',
-    entryDate: '',
-    exitDate: '',
-    mileage: '',
-    totalValue: '',
-    paymentStatus: 'pending'
+    vehicleId: service?.vehicleId || (preselectedVehicleId ? String(preselectedVehicleId) : ''),
+    clientId: service?.clientId || '',
+    type: service?.type || [],
+    customType: service?.customType || '',
+    description: service?.description || '',
+    totalValue: service?.totalValue || '',
+    entryDate: service?.entryDate || new Date().toISOString().split('T')[0],
+    exitDate: service?.exitDate || '',
+    mileage: service?.mileage || '',
+    status: service?.status || 'Em Andamento',
+    technician: service?.technician || '',
+    parts: service?.parts || '',
+    laborHours: service?.laborHours || '',
+    paymentStatus: service?.paymentStatus || 'pending'
   });
+
+  // Lista de tipos de serviço disponíveis
+  const serviceTypes = [
+    'Revisão Geral',
+    'Troca de Óleo',
+    'Troca de Filtros',
+    'Alinhamento e Balanceamento',
+    'Troca de Pneus',
+    'Freios',
+    'Suspensão',
+    'Sistema Elétrico',
+    'Ar Condicionado',
+    'Bateria',
+    'Embreagem',
+    'Radiador',
+    'Escapamento',
+    'Injeção Eletrônica',
+    'Cambio',
+    'Motor',
+    'Pintura',
+    'Funilaria',
+    'Lavagem e Enceramento',
+    'Inspeção Veicular'
+  ];
+
+  // Atualizar veículo quando preselectedVehicleId mudar
+  useEffect(() => {
+    if (preselectedVehicleId && !service) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleId: String(preselectedVehicleId)
+      }));
+    }
+  }, [preselectedVehicleId, service]);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (service) {
+      // Processar tipos de serviço para array se necessário
+      let serviceTypes = [];
+      if (service.type) {
+        if (Array.isArray(service.type)) {
+          serviceTypes = service.type;
+        } else if (typeof service.type === 'string') {
+          serviceTypes = service.type.includes(',') 
+            ? service.type.split(',').map(t => t.trim()) 
+            : [service.type];
+        }
+      }
+      
       setFormData({
-        vehicleId: service.vehicleId || '',
-        type: service.type || '',
-        customType: '',
+        vehicleId: service.vehicleId ? String(service.vehicleId) : '',
+        type: serviceTypes,
+        customType: service.customType || '',
         description: service.description || '',
         entryDate: service.entryDate || '',
         exitDate: service.exitDate || '',
@@ -30,7 +84,10 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
         paymentStatus: service.paymentStatus || 'pending'
       });
     } else if (preselectedVehicleId) {
-      setFormData(prev => ({ ...prev, vehicleId: preselectedVehicleId }));
+      setFormData(prev => ({ 
+        ...prev, 
+        vehicleId: String(preselectedVehicleId) 
+      }));
     }
   }, [service, preselectedVehicleId]);
 
@@ -41,9 +98,9 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
       newErrors.vehicleId = 'Veículo é obrigatório';
     }
 
-    if (!formData.type.trim()) {
-      newErrors.type = 'Tipo de serviço é obrigatório';
-    } else if (formData.type === 'Outro' && !formData.customType.trim()) {
+    if (!formData.type || formData.type.length === 0) {
+      newErrors.type = 'Pelo menos um tipo de serviço é obrigatório';
+    } else if (formData.type.includes('Outro') && !formData.customType.trim()) {
       newErrors.customType = 'Especifique o tipo de serviço personalizado';
     }
 
@@ -77,16 +134,35 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
     if (validateForm()) {
+      // Buscar o veículo selecionado para obter o client_id
+      const selectedVehicle = state.vehicles.find(v => v.id === formData.vehicleId);
+      
+      // Processar tipos de serviço
+      let serviceTypes = [...formData.type];
+      if (formData.type.includes('Outro') && formData.customType.trim()) {
+        // Substituir "Outro" pelo tipo personalizado
+        serviceTypes = serviceTypes.filter(type => type !== 'Outro');
+        serviceTypes.push(formData.customType.trim());
+      }
+      
       const serviceData = {
-        ...formData,
-        type: formData.type === 'Outro' ? formData.customType : formData.type,
-        vehicleId: parseInt(formData.vehicleId),
-        mileage: parseInt(formData.mileage),
-        totalValue: parseFloat(formData.totalValue)
+        vehicle_id: formData.vehicleId,
+        client_id: selectedVehicle?.client_id,
+        service_type: serviceTypes, // Enviar como array
+        description: formData.description,
+        cost: parseFloat(formData.totalValue),
+        service_date: formData.entryDate,
+        exit_date: formData.exitDate || null,
+        mileage: formData.mileage ? parseInt(formData.mileage) : null,
+        status: formData.paymentStatus === 'paid' ? 'Concluído' : 
+                formData.paymentStatus === 'partial' ? 'Em Andamento' : 'Pendente',
+        mechanic: null,
+        parts_used: null,
+        labor_hours: 0
       };
-      // Remove customType do objeto final
-      delete serviceData.customType;
+      
       onSubmit(serviceData);
     }
   };
@@ -101,12 +177,35 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
     }
   };
 
+  // Função para lidar com seleção múltipla de tipos de serviço
+  const handleServiceTypeChange = (serviceType) => {
+    setFormData(prev => {
+      const currentTypes = [...prev.type];
+      const typeIndex = currentTypes.indexOf(serviceType);
+      
+      if (typeIndex > -1) {
+        // Se já está selecionado, remove
+        currentTypes.splice(typeIndex, 1);
+      } else {
+        // Se não está selecionado, adiciona
+        currentTypes.push(serviceType);
+      }
+      
+      return { ...prev, type: currentTypes };
+    });
+    
+    // Limpar erro do campo quando o usuário fizer uma seleção
+    if (errors.type) {
+      setErrors(prev => ({ ...prev, type: '' }));
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Veículo */}
+        {/* Campo de Veículo */}
         <div>
-          <label htmlFor="vehicleId" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="vehicleId" className="block text-sm font-medium text-gray-700 mb-1">
             Veículo *
           </label>
           <select
@@ -114,14 +213,22 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
             name="vehicleId"
             value={formData.vehicleId}
             onChange={handleChange}
-            className={`input-field ${errors.vehicleId ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              errors.vehicleId ? 'border-red-500' : 'border-gray-300'
+            }`}
+            required
           >
             <option value="">Selecione um veículo</option>
-            {state.vehicles.map(vehicle => (
-              <option key={vehicle.id} value={vehicle.id}>
-                {vehicle.plate} - {vehicle.brand} {vehicle.model}
-              </option>
-            ))}
+            {state.vehicles.map((vehicle) => {
+              const vehicleIdString = String(vehicle.id);
+              const isSelected = vehicleIdString === formData.vehicleId;
+              
+              return (
+                <option key={vehicle.id} value={vehicleIdString}>
+                  {vehicle.license_plate} - {vehicle.brand} {vehicle.model}
+                </option>
+              );
+            })}
           </select>
           {errors.vehicleId && (
             <p className="mt-1 text-sm text-red-600">{errors.vehicleId}</p>
@@ -129,48 +236,69 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
         </div>
 
         {/* Tipo de Serviço */}
-        <div>
-          <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
-            Tipo de Serviço *
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Tipos de Serviço *
           </label>
-          <select
-            id="type"
-            name="type"
-            value={formData.type}
-            onChange={handleChange}
-            className={`input-field ${errors.type ? 'border-red-500 focus:ring-red-500' : ''}`}
-          >
-            <option value="">Selecione o tipo de serviço</option>
-            <option value="Revisão Geral">Revisão Geral</option>
-            <option value="Troca de Óleo">Troca de Óleo</option>
-            <option value="Troca de Filtros">Troca de Filtros</option>
-            <option value="Alinhamento e Balanceamento">Alinhamento e Balanceamento</option>
-            <option value="Troca de Pneus">Troca de Pneus</option>
-            <option value="Freios">Freios</option>
-            <option value="Suspensão">Suspensão</option>
-            <option value="Sistema Elétrico">Sistema Elétrico</option>
-            <option value="Ar Condicionado">Ar Condicionado</option>
-            <option value="Bateria">Bateria</option>
-            <option value="Embreagem">Embreagem</option>
-            <option value="Radiador">Radiador</option>
-            <option value="Escapamento">Escapamento</option>
-            <option value="Injeção Eletrônica">Injeção Eletrônica</option>
-            <option value="Cambio">Câmbio</option>
-            <option value="Motor">Motor</option>
-            <option value="Pintura">Pintura</option>
-            <option value="Funilaria">Funilaria</option>
-            <option value="Lavagem e Enceramento">Lavagem e Enceramento</option>
-            <option value="Inspeção Veicular">Inspeção Veicular</option>
-            <option value="Outro">Outro</option>
-          </select>
+          <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border rounded-md ${
+            errors.type ? 'border-red-500' : 'border-gray-300'
+          }`}>
+            {serviceTypes.map((serviceType) => (
+              <label key={serviceType} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.type.includes(serviceType)}
+                  onChange={() => handleServiceTypeChange(serviceType)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{serviceType}</span>
+              </label>
+            ))}
+            
+            {/* Opção "Outro" */}
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.type.includes('Outro')}
+                onChange={() => handleServiceTypeChange('Outro')}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">Outro</span>
+            </label>
+          </div>
+          
+          {/* Mostrar tipos selecionados */}
+          {formData.type.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-600">Selecionados:</p>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {formData.type.map((type, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  >
+                    {type}
+                    <button
+                      type="button"
+                      onClick={() => handleServiceTypeChange(type)}
+                      className="ml-1 text-blue-600 hover:text-blue-800"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          
           {errors.type && (
             <p className="mt-1 text-sm text-red-600">{errors.type}</p>
           )}
         </div>
 
         {/* Campo Personalizado - aparece apenas quando "Outro" é selecionado */}
-        {formData.type === 'Outro' && (
-          <div>
+        {formData.type.includes('Outro') && (
+          <div className="md:col-span-2">
             <label htmlFor="customType" className="block text-sm font-medium text-gray-700 mb-2">
               Especifique o Tipo de Serviço *
             </label>
@@ -257,9 +385,10 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
             onChange={handleChange}
             className="input-field"
           >
-            <option value="pending">⚠️ Pendente</option>
-            <option value="partial">💸 Parcialmente Pago</option>
-            <option value="paid">✅ Pago</option>
+            <option value="pending">📋 Pendente</option>
+            <option value="in_progress">🔧 Em Andamento</option>
+            <option value="completed">✅ Concluído</option>
+            <option value="cancelled">❌ Cancelado</option>
           </select>
         </div>
       </div>

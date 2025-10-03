@@ -1,505 +1,40 @@
-import React, { createContext, useContext, useReducer } from 'react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import ApiService from '../services/api';
+import { useNotifications } from './NotificationContext';
 
-// Estado inicial
+// Estado inicial - apenas estrutura vazia, dados serão carregados do backend
 const initialState = {
-  vehicles: [
-    {
-      id: 1,
-      plate: 'ABC-1234',
-      brand: 'Toyota',
-      model: 'Corolla',
-      currentMileage: 45000,
-      observations: 'Veículo em bom estado geral',
-      clientId: 1,
-      status: 'active',
-      lastService: {
-        date: '2024-01-15',
-        type: 'Revisão preventiva',
-        mileage: 44500
-      }
-    },
-    {
-      id: 2,
-      plate: 'XYZ-5678',
-      brand: 'Honda',
-      model: 'Civic',
-      currentMileage: 32000,
-      observations: 'Necessita troca de pneus em breve',
-      clientId: 2,
-      status: 'maintenance',
-      lastService: {
-        date: '2024-01-10',
-        type: 'Troca de óleo',
-        mileage: 31800
-      }
-    },
-    {
-      id: 3,
-      plate: 'DEF-9012',
-      brand: 'Volkswagen',
-      model: 'Gol',
-      currentMileage: 68000,
-      observations: 'Ar condicionado com problema',
-      clientId: 3,
-      status: 'maintenance',
-      lastService: {
-        date: '2024-01-08',
-        type: 'Manutenção ar condicionado',
-        mileage: 67500
-      }
-    },
-    {
-      id: 4,
-      plate: 'GHI-3456',
-      brand: 'Ford',
-      model: 'Ka',
-      currentMileage: 25000,
-      observations: 'Veículo novo, primeira revisão',
-      clientId: 4,
-      status: 'active',
-      lastService: {
-        date: '2024-01-12',
-        type: 'Primeira revisão',
-        mileage: 25000
-      }
-    },
-    {
-      id: 5,
-      plate: 'JKL-7890',
-      brand: 'Chevrolet',
-      model: 'Onix',
-      currentMileage: 38000,
-      observations: 'Pneus precisam ser trocados',
-      clientId: 5,
-      status: 'inactive',
-      lastService: {
-        date: '2024-01-05',
-        type: 'Balanceamento',
-        mileage: 37800
-      }
-    }
-  ],
-  clients: [
-    {
-      id: 1,
-      name: 'João Silva',
-      phone: '(11) 99999-9999',
-      email: 'joao@email.com',
-      document: '123.456.789-00',
-      address: 'Rua das Flores, 123',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01234-567',
-      status: 'active',
-      notes: 'Cliente desde 2020, sempre pontual nos pagamentos',
-      createdAt: '2020-03-15T10:00:00.000Z'
-    },
-    {
-      id: 2,
-      name: 'Maria Santos',
-      phone: '(11) 88888-8888',
-      email: 'maria@email.com',
-      document: '987.654.321-00',
-      address: 'Av. Paulista, 456',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01310-100',
-      status: 'active',
-      notes: 'Possui frota de 3 veículos',
-      createdAt: '2021-07-22T14:30:00.000Z'
-    },
-    {
-      id: 3,
-      name: 'Carlos Oliveira',
-      phone: '(11) 77777-7777',
-      email: 'carlos@email.com',
-      document: '456.789.123-00',
-      address: 'Rua Augusta, 789',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01305-000',
-      status: 'active',
-      notes: 'Prefere agendamentos pela manhã',
-      createdAt: '2022-01-10T09:15:00.000Z'
-    },
-    {
-      id: 4,
-      name: 'Ana Costa',
-      phone: '(11) 66666-6666',
-      email: 'ana@email.com',
-      document: '321.654.987-00',
-      address: 'Rua Oscar Freire, 321',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01426-001',
-      status: 'active',
-      notes: 'Cliente VIP, desconto especial',
-      createdAt: '2023-05-18T16:45:00.000Z'
-    },
-    {
-      id: 5,
-      name: 'Roberto Lima',
-      phone: '(11) 55555-5555',
-      email: 'roberto@email.com',
-      document: '789.123.456-00',
-      address: 'Rua Consolação, 654',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01302-907',
-      status: 'inactive',
-      notes: 'Cliente inativo desde dezembro/2023',
-      createdAt: '2019-11-03T11:20:00.000Z'
-    },
-    {
-      id: 6,
-      name: 'Pedro Almeida',
-      phone: '(11) 44444-4444',
-      email: 'pedro@email.com',
-      document: '147.258.369-00',
-      address: 'Rua Bela Vista, 890',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01415-002',
-      status: 'active',
-      notes: 'Cliente corporativo, frota de 5 veículos',
-      createdAt: '2021-09-12T08:30:00.000Z'
-    },
-    {
-      id: 7,
-      name: 'Fernanda Souza',
-      phone: '(11) 33333-3333',
-      email: 'fernanda@email.com',
-      document: '258.369.147-00',
-      address: 'Av. Faria Lima, 1500',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01452-000',
-      status: 'active',
-      notes: 'Executiva, prefere atendimento VIP',
-      createdAt: '2022-03-25T15:20:00.000Z'
-    },
-    {
-      id: 8,
-      name: 'Ricardo Mendes',
-      phone: '(11) 22222-2222',
-      email: 'ricardo@email.com',
-      document: '369.147.258-00',
-      address: 'Rua Itaim Bibi, 750',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '04530-001',
-      status: 'active',
-      notes: 'Cliente há 3 anos, sempre satisfeito',
-      createdAt: '2021-01-18T12:45:00.000Z'
-    },
-    {
-      id: 9,
-      name: 'Juliana Pereira',
-      phone: '(11) 11111-1111',
-      email: 'juliana@email.com',
-      document: '741.852.963-00',
-      address: 'Rua Vila Madalena, 320',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '05433-000',
-      status: 'active',
-      notes: 'Jovem empreendedora, carro novo',
-      createdAt: '2023-08-10T09:15:00.000Z'
-    },
-    {
-      id: 10,
-      name: 'Marcos Ferreira',
-      phone: '(11) 99887-7665',
-      email: 'marcos@email.com',
-      document: '852.963.741-00',
-      address: 'Av. Rebouças, 1200',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '05402-100',
-      status: 'inactive',
-      notes: 'Cliente inativo, mudou-se para outro estado',
-      createdAt: '2020-11-05T14:30:00.000Z'
-    },
-    {
-      id: 11,
-      name: 'Luciana Barbosa',
-      phone: '(11) 88776-6554',
-      email: 'luciana@email.com',
-      document: '963.741.852-00',
-      address: 'Rua Moema, 450',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '04077-020',
-      status: 'active',
-      notes: 'Professora, carro econômico',
-      createdAt: '2022-06-14T11:00:00.000Z'
-    },
-    {
-      id: 12,
-      name: 'Eduardo Santos',
-      phone: '(11) 77665-5443',
-      email: 'eduardo@email.com',
-      document: '159.753.486-00',
-      address: 'Rua Jardins, 680',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01404-001',
-      status: 'active',
-      notes: 'Médico, veículo de luxo',
-      createdAt: '2021-12-08T16:20:00.000Z'
-    },
-    {
-      id: 13,
-      name: 'Camila Rodrigues',
-      phone: '(11) 66554-4332',
-      email: 'camila@email.com',
-      document: '357.159.753-00',
-      address: 'Av. Ibirapuera, 2100',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '04029-200',
-      status: 'active',
-      notes: 'Advogada, muito exigente com qualidade',
-      createdAt: '2023-02-20T13:45:00.000Z'
-    },
-    {
-      id: 14,
-      name: 'Gabriel Lima',
-      phone: '(11) 55443-3221',
-      email: 'gabriel@email.com',
-      document: '753.486.159-00',
-      address: 'Rua Pinheiros, 1800',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '05422-001',
-      status: 'active',
-      notes: 'Engenheiro, gosta de tecnologia',
-      createdAt: '2022-09-30T10:30:00.000Z'
-    },
-    {
-      id: 15,
-      name: 'Patrícia Oliveira',
-      phone: '(11) 44332-2110',
-      email: 'patricia@email.com',
-      document: '486.159.753-00',
-      address: 'Rua Brooklin, 950',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '04567-001',
-      status: 'active',
-      notes: 'Arquiteta, carro híbrido',
-      createdAt: '2023-04-15T14:10:00.000Z'
-    },
-    {
-      id: 16,
-      name: 'Thiago Martins',
-      phone: '(11) 33221-1009',
-      email: 'thiago@email.com',
-      document: '159.357.486-00',
-      address: 'Av. Santo Amaro, 3200',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '04702-000',
-      status: 'inactive',
-      notes: 'Cliente inativo, problemas financeiros',
-      createdAt: '2020-07-22T09:45:00.000Z'
-    },
-    {
-      id: 17,
-      name: 'Renata Silva',
-      phone: '(11) 22110-0998',
-      email: 'renata@email.com',
-      document: '357.486.159-00',
-      address: 'Rua Campo Belo, 1400',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '04609-003',
-      status: 'active',
-      notes: 'Dentista, sempre pontual',
-      createdAt: '2022-11-18T15:30:00.000Z'
-    },
-    {
-      id: 18,
-      name: 'Bruno Costa',
-      phone: '(11) 11009-9887',
-      email: 'bruno@email.com',
-      document: '486.357.159-00',
-      address: 'Rua Vila Olímpia, 2800',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '04551-060',
-      status: 'active',
-      notes: 'Empresário, frota comercial',
-      createdAt: '2021-05-10T12:15:00.000Z'
-    },
-    {
-      id: 19,
-      name: 'Vanessa Alves',
-      phone: '(11) 00998-8776',
-      email: 'vanessa@email.com',
-      document: '159.486.357-00',
-      address: 'Av. Berrini, 1100',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '04571-010',
-      status: 'active',
-      notes: 'Consultora, viaja muito',
-      createdAt: '2023-01-12T08:00:00.000Z'
-    },
-    {
-      id: 20,
-      name: 'André Ribeiro',
-      phone: '(11) 99887-7665',
-      email: 'andre@email.com',
-      document: '357.159.486-00',
-      address: 'Rua Morumbi, 2500',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '05650-000',
-      status: 'active',
-      notes: 'Aposentado, carro clássico',
-      createdAt: '2020-12-03T17:20:00.000Z'
-    }
-  ],
-  services: [
-    {
-      id: 1,
-      vehicleId: 1,
-      type: 'Revisão Geral',
-      description: 'Revisão completa dos 45.000km incluindo troca de óleo, filtros e verificação geral',
-      entryDate: '2024-01-15',
-      exitDate: '2024-01-16',
-      mileage: 45000,
-      totalValue: 450.00,
-      paymentStatus: 'paid',
-      parts: [
-        { id: 1, name: 'Óleo do motor', quantity: 4, unitPrice: 25.00 },
-        { id: 2, name: 'Filtro de óleo', quantity: 1, unitPrice: 15.00 },
-        { id: 3, name: 'Filtro de ar', quantity: 1, unitPrice: 20.00 }
-      ]
-    },
-    {
-      id: 2,
-      vehicleId: 2,
-      type: 'Troca de Pastilhas de Freio',
-      description: 'Substituição das pastilhas de freio dianteiras e verificação do sistema',
-      entryDate: '2024-01-20',
-      exitDate: '',
-      mileage: 52000,
-      totalValue: 280.00,
-      paymentStatus: 'pending',
-      parts: [
-        { id: 4, name: 'Pastilhas de freio dianteiras', quantity: 1, unitPrice: 120.00 }
-      ]
-    },
-    {
-      id: 3,
-      vehicleId: 3,
-      type: 'Reparo Ar Condicionado',
-      description: 'Diagnóstico e reparo do sistema de ar condicionado, troca do compressor',
-      entryDate: '2024-01-18',
-      exitDate: '2024-01-22',
-      mileage: 68000,
-      totalValue: 850.00,
-      paymentStatus: 'partial',
-      parts: [
-        { id: 5, name: 'Compressor de ar condicionado', quantity: 1, unitPrice: 450.00 },
-        { id: 6, name: 'Gás refrigerante', quantity: 2, unitPrice: 35.00 }
-      ]
-    },
-    {
-      id: 4,
-      vehicleId: 4,
-      type: 'Primeira Revisão',
-      description: 'Primeira revisão programada aos 25.000km conforme manual do fabricante',
-      entryDate: '2024-01-25',
-      exitDate: '2024-01-25',
-      mileage: 25000,
-      totalValue: 320.00,
-      paymentStatus: 'paid',
-      parts: [
-        { id: 7, name: 'Óleo sintético', quantity: 3, unitPrice: 35.00 },
-        { id: 8, name: 'Filtro de óleo premium', quantity: 1, unitPrice: 25.00 }
-      ]
-    },
-    {
-      id: 5,
-      vehicleId: 5,
-      type: 'Troca de Pneus',
-      description: 'Substituição dos 4 pneus e alinhamento/balanceamento',
-      entryDate: '2024-01-28',
-      exitDate: '',
-      mileage: 38000,
-      totalValue: 1200.00,
-      paymentStatus: 'pending',
-      parts: [
-        { id: 9, name: 'Pneu 185/65 R15', quantity: 4, unitPrice: 180.00 }
-      ]
-    },
-    {
-      id: 6,
-      vehicleId: 1,
-      type: 'Troca de Bateria',
-      description: 'Substituição da bateria original por uma de maior capacidade',
-      entryDate: '2024-01-30',
-      exitDate: '2024-01-30',
-      mileage: 45200,
-      totalValue: 350.00,
-      paymentStatus: 'paid',
-      parts: [
-        { id: 10, name: 'Bateria 60Ah', quantity: 1, unitPrice: 280.00 }
-      ]
-    },
-    {
-      id: 7,
-      vehicleId: 2,
-      type: 'Alinhamento e Balanceamento',
-      description: 'Serviço de alinhamento e balanceamento das rodas',
-      entryDate: '2024-02-01',
-      exitDate: '2024-02-01',
-      mileage: 52500,
-      totalValue: 120.00,
-      paymentStatus: 'paid',
-      parts: []
-    }
-  ],
-  parts: [
-    {
-      id: 1,
-      name: 'Filtro de óleo',
-      purchasePrice: 20.00,
-      salePrice: 25.00,
-      stock: 15,
-      category: 'Filtros'
-    },
-    {
-      id: 2,
-      name: 'Óleo motor 5W30',
-      purchasePrice: 28.00,
-      salePrice: 35.00,
-      stock: 20,
-      category: 'Lubrificantes'
-    },
-    {
-      id: 3,
-      name: 'Pastilha de freio',
-      purchasePrice: 45.00,
-      salePrice: 65.00,
-      stock: 8,
-      category: 'Freios'
-    }
-  ]
+  vehicles: [],
+  clients: [],
+  services: [],
+  parts: []
 };
 
 // Reducer
 function appReducer(state, action) {
   switch (action.type) {
+    case 'SET_CLIENTS':
+      return {
+        ...state,
+        clients: action.payload
+      };
+    
+    case 'SET_VEHICLES':
+      return {
+        ...state,
+        vehicles: action.payload
+      };
+    
+    case 'SET_SERVICES':
+      return {
+        ...state,
+        services: action.payload
+      };
+    
     case 'ADD_VEHICLE':
       return {
         ...state,
-        vehicles: [...state.vehicles, { ...action.payload, id: Date.now() }]
+        vehicles: [...state.vehicles, action.payload] // Remover o Date.now() pois o ID vem do backend
       };
     
     case 'UPDATE_VEHICLE':
@@ -519,7 +54,7 @@ function appReducer(state, action) {
     case 'ADD_CLIENT':
       return {
         ...state,
-        clients: [...state.clients, { ...action.payload, id: Date.now() }]
+        clients: [...state.clients, action.payload] // Remover o Date.now() pois o ID vem do backend
       };
     
     case 'UPDATE_CLIENT':
@@ -537,14 +72,10 @@ function appReducer(state, action) {
       };
     
     case 'ADD_SERVICE':
+      // Apenas adiciona o serviço, não altera status do veículo
       return {
         ...state,
-        services: [...state.services, { ...action.payload, id: Date.now() }],
-        vehicles: state.vehicles.map(vehicle =>
-          vehicle.id === action.payload.vehicleId
-            ? { ...vehicle, status: 'maintenance' }
-            : vehicle
-        )
+        services: [...state.services, action.payload]
       };
     
     case 'UPDATE_SERVICE':
@@ -564,7 +95,7 @@ function appReducer(state, action) {
     case 'ADD_PART':
       return {
         ...state,
-        parts: [...state.parts, { ...action.payload, id: Date.now() }]
+        parts: [...state.parts, action.payload] // Remover o Date.now() pois o ID vem do backend
       };
     
     case 'UPDATE_PART':
@@ -593,6 +124,42 @@ const AppContext = createContext();
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Carregar dados do backend quando o componente for montado
+  useEffect(() => {
+    const loadData = async () => {
+      console.log('=== AppContext Debug - Iniciando carregamento ===');
+      try {
+        // Carregar clientes
+        console.log('Carregando clientes...');
+        const clients = await ApiService.getClients();
+        console.log('Clientes carregados:', clients);
+        dispatch({ type: 'SET_CLIENTS', payload: Array.isArray(clients) ? clients : [] });
+
+        // Carregar veículos
+        console.log('Carregando veículos...');
+        const vehicles = await ApiService.getVehicles();
+        console.log('Veículos carregados:', vehicles);
+        dispatch({ type: 'SET_VEHICLES', payload: Array.isArray(vehicles) ? vehicles : [] });
+
+        // Carregar serviços
+        console.log('Carregando serviços...');
+        const services = await ApiService.getServices();
+        console.log('Serviços carregados:', services);
+        dispatch({ type: 'SET_SERVICES', payload: Array.isArray(services) ? services : [] });
+        
+        console.log('=== AppContext Debug - Carregamento concluído ===');
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        // Em caso de erro, garantir que os arrays estejam vazios
+        dispatch({ type: 'SET_CLIENTS', payload: [] });
+        dispatch({ type: 'SET_VEHICLES', payload: [] });
+        dispatch({ type: 'SET_SERVICES', payload: [] });
+      }
+    };
+
+    loadData();
+  }, []);
+
   // Funções auxiliares
   const getVehicleById = (id) => state.vehicles.find(v => v.id === id);
   const getClientById = (id) => state.clients.find(c => c.id === id);
@@ -606,10 +173,25 @@ export function AppProvider({ children }) {
     state.services.filter(s => s.vehicleId === vehicleId);
   
   const getServicesInProgress = () => 
-    state.services.filter(s => !s.exitDate || s.exitDate === '');
+    state.services.filter(s => 
+      s.paymentStatus === 'pending' || 
+      s.paymentStatus === 'in_progress'
+    );
   
   const getPendingPayments = () => 
     state.services.filter(s => s.paymentStatus === 'pending' || s.paymentStatus === 'partial');
+
+  // Função para recarregar dados de veículos
+  const refreshVehicles = async () => {
+    try {
+      console.log('Recarregando dados de veículos...');
+      const vehicles = await ApiService.getVehicles();
+      console.log('Veículos recarregados:', vehicles);
+      dispatch({ type: 'SET_VEHICLES', payload: Array.isArray(vehicles) ? vehicles : [] });
+    } catch (error) {
+      console.error('Erro ao recarregar veículos:', error);
+    }
+  };
 
   const value = {
     state,
@@ -622,7 +204,9 @@ export function AppProvider({ children }) {
     getVehiclesByClient,
     getServicesByVehicle,
     getServicesInProgress,
-    getPendingPayments
+    getPendingPayments,
+    // Função para refresh
+    refreshVehicles
   };
 
   return (

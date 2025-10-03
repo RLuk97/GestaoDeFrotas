@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import {
   ArrowLeft,
   Edit,
@@ -12,7 +10,6 @@ import {
   Wrench,
   DollarSign,
   FileText,
-  MapPin,
   Fuel,
   Gauge,
   User,
@@ -32,8 +29,8 @@ const VehicleDetails = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const vehicle = state.vehicles.find(v => v.id === parseInt(id));
-  const vehicleServices = state.services.filter(s => s.vehicleId === parseInt(id));
+  const vehicle = state.vehicles.find(v => v.id === id);
+  const vehicleServices = state.services.filter(s => s.vehicleId === id);
 
   if (!vehicle) {
     return (
@@ -92,7 +89,7 @@ const VehicleDetails = () => {
     }
   };
 
-  const totalServiceCost = vehicleServices.reduce((sum, service) => sum + service.totalValue, 0);
+  const totalServiceCost = vehicleServices.reduce((sum, service) => sum + (parseFloat(service.totalValue) || 0), 0);
 
   return (
     <div className="min-h-screen bg-brand-surface">
@@ -114,7 +111,7 @@ const VehicleDetails = () => {
             Detalhes do Veículo
           </h1>
           <p className="text-brand-muted mt-1">
-            Informações completas sobre o veículo {vehicle.plate}
+            Informações completas sobre o veículo {vehicle.license_plate}
           </p>
         </div>
 
@@ -126,7 +123,7 @@ const VehicleDetails = () => {
                   {vehicle.brand} {vehicle.model}
                 </h2>
                 <p className="text-gray-600 mt-1">
-                  Placa: {vehicle.plate} • Ano: {vehicle.year}
+                  Placa: {vehicle.license_plate} • Ano: {vehicle.year}
                 </p>
               </div>
             </div>
@@ -181,7 +178,7 @@ const VehicleDetails = () => {
                     <label className="block text-sm font-medium text-brand-muted mb-1">
                       Placa
                     </label>
-                    <p className="text-brand-primary font-mono font-bold text-lg">{vehicle.plate}</p>
+                    <p className="text-brand-primary font-mono font-bold text-lg">{vehicle.license_plate}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-brand-muted mb-1">
@@ -201,7 +198,7 @@ const VehicleDetails = () => {
                     </label>
                     <p className="text-brand-primary flex items-center">
                       <Fuel className="h-4 w-4 mr-2 text-brand-muted" />
-                      {vehicle.fuelType}
+                      {vehicle.fuel_type}
                     </p>
                   </div>
                   <div>
@@ -244,7 +241,7 @@ const VehicleDetails = () => {
                       Licenciamento
                     </label>
                     <p className="text-brand-primary">
-                      {vehicle.licensing ? format(new Date(vehicle.licensing), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}
+                      {vehicle.licensing ? vehicle.licensing.split('-').reverse().join('/') : 'Não informado'}
                     </p>
                   </div>
                   <div>
@@ -252,7 +249,7 @@ const VehicleDetails = () => {
                       Seguro
                     </label>
                     <p className="text-brand-primary">
-                      {vehicle.insurance ? format(new Date(vehicle.insurance), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}
+                      {vehicle.insurance ? vehicle.insurance.split('-').reverse().join('/') : 'Não informado'}
                     </p>
                   </div>
                   <div>
@@ -260,7 +257,7 @@ const VehicleDetails = () => {
                       IPVA
                     </label>
                     <p className="text-brand-primary">
-                      {vehicle.ipva ? format(new Date(vehicle.ipva), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}
+                      {vehicle.ipva ? vehicle.ipva.split('-').reverse().join('/') : 'Não informado'}
                     </p>
                   </div>
                 </div>
@@ -282,13 +279,28 @@ const VehicleDetails = () => {
                       <div key={service.id} className="border border-brand-border rounded-lg p-4 hover:bg-brand-hover transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-brand-primary">{service.type}</h4>
+                            <div className="font-medium text-brand-primary">
+                              {Array.isArray(service.type) ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {service.type.map((type, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                    >
+                                      {type}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span>{service.type}</span>
+                              )}
+                            </div>
                             <p className="text-sm text-brand-muted mt-1">
-                              {format(new Date(service.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
+                              {service.entryDate ? service.entryDate.split('-').reverse().join('/') : 'Data inválida'}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-brand-primary">R$ {service.totalValue?.toFixed(2)}</p>
+                            <p className="font-medium text-brand-primary">R$ {(parseFloat(service.totalValue) || 0).toFixed(2)}</p>
                             <Link
                               to={`/services/${service.id}`}
                               className="text-sm text-brand-secondary hover:text-brand-primary"
