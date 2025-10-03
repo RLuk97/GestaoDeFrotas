@@ -24,6 +24,11 @@ class ApiService {
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    // Log de diagnóstico em desenvolvimento para verificar URL efetiva
+    if (!isProd) {
+      // eslint-disable-next-line no-console
+      console.debug('[ApiService] URL:', url);
+    }
     const controller = new AbortController();
     const timeoutMs = options.timeoutMs || 10000; // timeout gentil para evitar hangs
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
