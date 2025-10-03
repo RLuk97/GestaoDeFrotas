@@ -4,6 +4,7 @@ const { query } = require('../config/database');
 const Service = require('../models/Service');
 const Vehicle = require('../models/Vehicle');
 const Client = require('../models/Client');
+const ActivityLog = require('../models/ActivityLog');
 const router = express.Router();
 
 // Middleware para validação de erros
@@ -206,6 +207,19 @@ router.post('/', serviceValidation, handleValidationErrors, async (req, res) => 
       await Vehicle.update(vehicle_id, { ...vehicle, status: 'maintenance' });
     }
 
+    // Registrar atividade: serviço criado
+    try {
+      await ActivityLog.create({
+        entity_type: 'service',
+        action: 'created',
+        entity_id: fullService.id,
+        title: `Serviço criado: ${fullService.serviceType || service_type}`,
+        description: `Veículo ${fullService.vehicleLicensePlate || vehicle.license_plate}`,
+        amount: Number(fullService.cost || cost || 0),
+        status: (fullService.status || status || 'Pendente')
+      });
+    } catch (e) { console.warn('Falha ao registrar ActivityLog (create service):', e.message); }
+
     res.status(201).json({
       success: true,
       message: 'Serviço criado com sucesso',
@@ -305,6 +319,19 @@ router.patch('/:id/status', async (req, res) => {
     // Buscar o serviço completo com dados relacionados
     const service = await Service.findById(id);
     
+    // Registrar atividade: status de serviço atualizado
+    try {
+      await ActivityLog.create({
+        entity_type: 'service',
+        action: 'updated',
+        entity_id: service.id,
+        title: `Status do serviço atualizado: ${service.serviceType}`,
+        description: `Veículo ${service.vehicleLicensePlate}`,
+        amount: Number(service.cost || 0),
+        status: backendStatus
+      });
+    } catch (e) { console.warn('Falha ao registrar ActivityLog (update service status):', e.message); }
+
     res.json({
       success: true,
       message: 'Status atualizado com sucesso',
@@ -428,6 +455,19 @@ router.put('/:id', serviceValidation, handleValidationErrors, async (req, res) =
 
     console.log('=== FIM EDIÇÃO SERVIÇO ===');
     
+    // Registrar atividade: serviço atualizado
+    try {
+      await ActivityLog.create({
+        entity_type: 'service',
+        action: 'updated',
+        entity_id: service.id,
+        title: `Serviço atualizado: ${service.serviceType || service_type}`,
+        description: `Veículo ${vehicle.license_plate}`,
+        amount: Number(service.cost || cost || 0),
+        status: (service.status || status)
+      });
+    } catch (e) { console.warn('Falha ao registrar ActivityLog (update service):', e.message); }
+
     res.json({
       success: true,
       message: 'Serviço atualizado com sucesso',
@@ -458,6 +498,19 @@ router.delete('/:id', async (req, res) => {
     const deleted = await Service.delete(id);
     
     if (deleted) {
+      // Registrar atividade: serviço excluído
+      try {
+        await ActivityLog.create({
+          entity_type: 'service',
+          action: 'deleted',
+          entity_id: existingService.id,
+          title: `Serviço excluído: ${existingService.serviceType || 'Serviço'}`,
+          description: `Veículo ${existingService.vehicleLicensePlate || existingService.vehicleId}`,
+          amount: Number(existingService.cost || 0),
+          status: 'deleted'
+        });
+      } catch (e) { console.warn('Falha ao registrar ActivityLog (delete service):', e.message); }
+
       res.json({
         success: true,
         message: 'Serviço deletado com sucesso'

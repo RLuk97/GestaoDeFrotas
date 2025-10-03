@@ -44,14 +44,25 @@ const Dashboard = () => {
       // Despesa mensal - serviços concluídos no mês atual
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
+      const parseLocalYmd = (ymd) => {
+        if (!ymd || typeof ymd !== 'string') return null;
+        const [y, m, d] = ymd.split('-').map(Number);
+        if (!y || !m || !d) return null;
+        return new Date(y, m - 1, d); // data local
+      };
+
       const monthlyExpense = services
         .filter(service => {
-          const serviceDate = new Date(service.entryDate);
-          return serviceDate.getMonth() === currentMonth && 
-                 serviceDate.getFullYear() === currentYear &&
-                 service.paymentStatus === 'completed';
+          const dateStr = service.exitDate || service.entryDate;
+          const serviceDate = parseLocalYmd(dateStr);
+          if (!serviceDate) return false;
+          return (
+            serviceDate.getMonth() === currentMonth &&
+            serviceDate.getFullYear() === currentYear &&
+            service.paymentStatus === 'completed'
+          );
         })
-        .reduce((total, service) => total + service.totalValue, 0);
+        .reduce((total, service) => total + (parseFloat(service.totalValue) || 0), 0);
 
       // Atividades recentes (últimos 5 serviços)
       const recentActivities = services
@@ -151,7 +162,10 @@ const Dashboard = () => {
     <div style={{ 
       padding: '24px',
       backgroundColor: '#f8fafc',
-      minHeight: '100vh'
+      height: '100vh',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column'
     }}>
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
@@ -220,13 +234,6 @@ const Dashboard = () => {
             color: '#94a3b8'
           }}>
             2º ativos
-          </div>
-          <div style={{ 
-            fontSize: '12px', 
-            color: '#10b981',
-            marginTop: '4px'
-          }}>
-            ↗ +12%
           </div>
         </div>
 
@@ -365,10 +372,10 @@ const Dashboard = () => {
           </div>
           <div style={{ 
             fontSize: '12px', 
-            color: '#ef4444',
+            color: '#6b7280',
             marginTop: '4px'
           }}>
-            ↗ +8%
+            {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).replace(' de ', ' / ')}
           </div>
         </div>
       </div>
@@ -377,7 +384,9 @@ const Dashboard = () => {
       <div style={{ 
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-        gap: '24px'
+        gap: '24px',
+        flex: 1,
+        overflowY: 'auto'
       }}>
         {/* Ações Rápidas */}
         <div style={{
@@ -401,17 +410,20 @@ const Dashboard = () => {
               display: 'flex',
               alignItems: 'center',
               padding: '16px',
-              backgroundColor: '#dbeafe',
+              background: 'linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
               textAlign: 'left',
-              width: '100%'
+              width: '100%',
+              color: '#ffffff',
+              boxShadow: '0 8px 20px rgba(37, 99, 235, 0.25)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease'
             }}>
-              <Plus size={20} color="#2563eb" style={{ marginRight: '12px' }} />
+              <Plus size={20} color="#ffffff" style={{ marginRight: '12px' }} />
               <div>
-                <div style={{ fontWeight: '500', color: '#1f2937' }}>Cadastrar Veículo</div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>Adicionar novo veículo à frota</div>
+                <div style={{ fontWeight: '600', color: '#ffffff' }}>Cadastrar Veículo</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>Adicionar novo veículo à frota</div>
               </div>
             </button>
             
@@ -419,17 +431,20 @@ const Dashboard = () => {
               display: 'flex',
               alignItems: 'center',
               padding: '16px',
-              backgroundColor: '#fed7aa',
+              background: 'linear-gradient(135deg, #fb923c 0%, #f59e0b 100%)',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
               textAlign: 'left',
-              width: '100%'
+              width: '100%',
+              color: '#ffffff',
+              boxShadow: '0 8px 20px rgba(245, 158, 11, 0.25)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease'
             }}>
-              <Calendar size={20} color="#ea580c" style={{ marginRight: '12px' }} />
+              <Calendar size={20} color="#ffffff" style={{ marginRight: '12px' }} />
               <div>
-                <div style={{ fontWeight: '500', color: '#1f2937' }}>Agendar Manutenção</div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>Agendar serviço de manutenção</div>
+                <div style={{ fontWeight: '600', color: '#ffffff' }}>Agendar Manutenção</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>Agendar serviço de manutenção</div>
               </div>
             </button>
             
@@ -437,17 +452,20 @@ const Dashboard = () => {
               display: 'flex',
               alignItems: 'center',
               padding: '16px',
-              backgroundColor: '#e9d5ff',
+              background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
               textAlign: 'left',
-              width: '100%'
+              width: '100%',
+              color: '#ffffff',
+              boxShadow: '0 8px 20px rgba(124, 58, 237, 0.25)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease'
             }}>
-              <FileText size={20} color="#7c3aed" style={{ marginRight: '12px' }} />
+              <FileText size={20} color="#ffffff" style={{ marginRight: '12px' }} />
               <div>
-                <div style={{ fontWeight: '500', color: '#1f2937' }}>Relatórios</div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>Visualizar relatórios e dados</div>
+                <div style={{ fontWeight: '600', color: '#ffffff' }}>Relatórios</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>Visualizar relatórios e dados</div>
               </div>
             </button>
           </div>

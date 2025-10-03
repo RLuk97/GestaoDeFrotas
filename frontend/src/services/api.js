@@ -170,6 +170,12 @@ class ApiService {
     });
   }
 
+  // Métodos para Atividades
+  async getRecentActivities(limit = 5) {
+    const response = await this.request(`/activities/recent?limit=${limit}`);
+    return response.data || response;
+  }
+
   // Health Check
   async healthCheck() {
     return this.request('/health');

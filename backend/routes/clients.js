@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Client = require('../models/Client');
+const ActivityLog = require('../models/ActivityLog');
 const router = express.Router();
 
 // Middleware para validação de erros
@@ -148,6 +149,21 @@ router.post('/', clientValidation, handleValidationErrors, async (req, res) => {
       notes
     });
     
+    // Registrar atividade: cliente criado
+    try {
+      await ActivityLog.create({
+        entity_type: 'client',
+        action: 'created',
+        entity_id: client.id,
+        title: `Cliente criado: ${client.name}`,
+        description: client.email ? `Email: ${client.email}` : undefined,
+        amount: 0,
+        status: 'created'
+      });
+    } catch (e) {
+      console.warn('Falha ao registrar ActivityLog (create client):', e.message);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Cliente criado com sucesso',
@@ -209,6 +225,21 @@ router.put('/:id', clientValidation, handleValidationErrors, async (req, res) =>
       notes
     });
     
+    // Registrar atividade: cliente atualizado
+    try {
+      await ActivityLog.create({
+        entity_type: 'client',
+        action: 'updated',
+        entity_id: client.id,
+        title: `Cliente atualizado: ${client.name}`,
+        description: client.email ? `Email: ${client.email}` : undefined,
+        amount: 0,
+        status: 'updated'
+      });
+    } catch (e) {
+      console.warn('Falha ao registrar ActivityLog (update client):', e.message);
+    }
+
     res.json({
       success: true,
       message: 'Cliente atualizado com sucesso',
@@ -239,6 +270,21 @@ router.delete('/:id', async (req, res) => {
     const deleted = await Client.delete(id);
     
     if (deleted) {
+      // Registrar atividade: cliente excluído
+      try {
+        await ActivityLog.create({
+          entity_type: 'client',
+          action: 'deleted',
+          entity_id: existingClient.id,
+          title: `Cliente excluído: ${existingClient.name}`,
+          description: existingClient.email ? `Email: ${existingClient.email}` : undefined,
+          amount: 0,
+          status: 'deleted'
+        });
+      } catch (e) {
+        console.warn('Falha ao registrar ActivityLog (delete client):', e.message);
+      }
+
       res.json({
         success: true,
         message: 'Cliente deletado com sucesso'

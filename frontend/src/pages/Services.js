@@ -319,7 +319,7 @@ const Services = () => {
               <CheckCircle className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-0.5">Processados</p>
+              <p className="text-sm text-gray-600 mb-0.5">Concluídos</p>
               <p className="text-xl font-bold text-gray-900">{stats.completed}</p>
             </div>
           </div>
@@ -411,22 +411,22 @@ const Services = () => {
               <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Veículo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Serviço
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Datas
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Valor
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
@@ -451,7 +451,7 @@ const Services = () => {
                     
                     return (
                       <tr key={service.id} className="hover:bg-gray-50 transition-colors duration-150">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap text-left">
                           <div className="flex items-center">
                             <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mr-3">
                               <Car className="h-4 w-4 text-white" />
@@ -462,11 +462,11 @@ const Services = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 text-center">
                           <div>
                             <div className="text-sm font-medium text-gray-900">
                               {Array.isArray(service.type) ? (
-                                <div className="flex flex-wrap gap-1">
+                                <div className="flex flex-wrap gap-1 justify-center">
                                   {service.type.map((type, index) => (
                                     <span
                                       key={index}
@@ -483,7 +483,7 @@ const Services = () => {
                             <p className="text-xs text-gray-500 mt-1">{service.mileage?.toLocaleString()} km</p>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap text-left">
                           <div className="text-sm text-gray-900">
                             <div className="flex items-center mb-1">
                               <Calendar className="h-4 w-4 text-gray-400 mr-1" />
@@ -497,11 +497,11 @@ const Services = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
                           <p className="text-sm font-medium text-gray-900">R$ {(parseFloat(service.totalValue) || 0).toFixed(2)}</p>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-2">
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="flex items-center justify-center space-x-2">
                             {getStatusIcon(service.paymentStatus)}
                             <select
                               value={service.paymentStatus}
@@ -515,8 +515,8 @@ const Services = () => {
                             </select>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end space-x-2">
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                          <div className="flex justify-center space-x-2">
                             <Link
                               to={`/services/${service.id}`}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"

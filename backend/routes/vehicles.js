@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Vehicle = require('../models/Vehicle');
 const Client = require('../models/Client');
+const ActivityLog = require('../models/ActivityLog');
 const router = express.Router();
 
 // Middleware para validação de erros
@@ -141,6 +142,22 @@ router.post('/', vehicleValidation, handleValidationErrors, async (req, res) => 
       mileage: mileage || 0
     });
     
+    // Log de atividade: veículo criado
+    try {
+      const title = `Veículo criado: ${brand} ${model}`;
+      const desc = `Placa ${vehicle.license_plate}${client_id ? ` — Cliente ${client_id}` : ''}`;
+      await ActivityLog.create({
+        entity_type: 'vehicle',
+        action: 'created',
+        entity_id: vehicle.id,
+        title,
+        description: desc,
+        amount: 0,
+        status: 'created',
+        metadata: client_id ? { client_id } : null
+      });
+    } catch (e) { console.warn('Falha ao registrar ActivityLog (create vehicle):', e.message); }
+
     res.status(201).json({
       success: true,
       message: 'Veículo criado com sucesso',
@@ -181,6 +198,19 @@ router.put('/:id', async (req, res) => {
       
       const vehicle = await Vehicle.update(id, { ...existingVehicle, status });
       
+      // Log de atividade: status de veículo atualizado
+      try {
+        await ActivityLog.create({
+          entity_type: 'vehicle',
+          action: 'updated',
+          entity_id: vehicle.id,
+          title: `Status do veículo atualizado: ${vehicle.license_plate}`,
+          description: `Status: ${status}`,
+          amount: 0,
+          status: 'updated'
+        });
+      } catch (e) { console.warn('Falha ao registrar ActivityLog (update vehicle status):', e.message); }
+
       return res.json({
         success: true,
         message: 'Status do veículo atualizado com sucesso',
@@ -221,6 +251,21 @@ router.put('/:id', async (req, res) => {
       status: status || existingVehicle.status
     });
     
+    // Log de atividade: veículo atualizado
+    try {
+      const title = `Veículo atualizado: ${vehicle.brand} ${vehicle.model}`;
+      const desc = `Placa ${vehicle.license_plate}`;
+      await ActivityLog.create({
+        entity_type: 'vehicle',
+        action: 'updated',
+        entity_id: vehicle.id,
+        title,
+        description: desc,
+        amount: 0,
+        status: 'updated'
+      });
+    } catch (e) { console.warn('Falha ao registrar ActivityLog (update vehicle):', e.message); }
+
     res.json({
       success: true,
       message: 'Veículo atualizado com sucesso',
@@ -251,6 +296,19 @@ router.delete('/:id', async (req, res) => {
     const deleted = await Vehicle.delete(id);
     
     if (deleted) {
+      // Log de atividade: veículo excluído
+      try {
+        await ActivityLog.create({
+          entity_type: 'vehicle',
+          action: 'deleted',
+          entity_id: existingVehicle.id,
+          title: `Veículo excluído: ${existingVehicle.brand} ${existingVehicle.model}`,
+          description: `Placa ${existingVehicle.license_plate}`,
+          amount: 0,
+          status: 'deleted'
+        });
+      } catch (e) { console.warn('Falha ao registrar ActivityLog (delete vehicle):', e.message); }
+
       res.json({
         success: true,
         message: 'Veículo deletado com sucesso'
