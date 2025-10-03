@@ -28,18 +28,39 @@ class Service {
 
   // Mapear status do banco para paymentStatus do frontend
   mapStatusToPaymentStatus(status) {
-    switch (status) {
-      case 'Concluído':
-        return 'completed';
-      case 'Em Andamento':
-        return 'in_progress';
-      case 'Pendente':
-        return 'pending';
-      case 'Cancelado':
-        return 'cancelled';
-      default:
-        return 'pending';
+    const s = (status || '').toString().trim();
+    const sLower = s.toLowerCase();
+    // Remover acentos para comparação mais robusta
+    const sNorm = s
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    // Tratar sinônimos e variações como concluído
+    if (
+      sLower === 'concluído' ||
+      sNorm === 'concluido' ||
+      sLower === 'completed' ||
+      sLower === 'processado' ||
+      sLower === 'faturado' ||
+      sLower === 'pago' ||
+      sLower === 'paid'
+    ) {
+      return 'completed';
     }
+
+    if (sLower === 'em andamento' || sLower === 'in_progress') {
+      return 'in_progress';
+    }
+    if (sLower === 'pendente' || sLower === 'pending') {
+      return 'pending';
+    }
+    if (sLower === 'cancelado' || sLower === 'cancelled') {
+      return 'cancelled';
+    }
+
+    // Padrão
+    return 'pending';
   }
 
   // Mapear status do frontend para o banco de dados

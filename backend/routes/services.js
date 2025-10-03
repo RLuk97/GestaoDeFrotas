@@ -268,27 +268,37 @@ router.patch('/:id/status', async (req, res) => {
     // Verificar se TODOS os serviços do veículo estão pagos
     const allVehicleServices = await query(
       'SELECT status FROM services WHERE vehicle_id = $1',
-      [existingService.vehicle_id]
+      [existingService.vehicleId]
     );
     
     // Verificar se todos os serviços estão concluídos
-    // Aceitar tanto 'Concluído' (PT) quanto 'completed' (EN) para compatibilidade
+    // Aceitar 'Concluído' (PT), variações sem acento, e sinônimos como 'Processado', 'Faturado', 'Pago'
     const allServicesCompleted = allVehicleServices.rows.every(s => {
-      const st = (s.status || '').toLowerCase();
-      return st === 'concluído' || st === 'completed';
+      const raw = (s.status || '').toString().trim();
+      const stLower = raw.toLowerCase();
+      const stNorm = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      return (
+        stLower === 'concluído' ||
+        stNorm === 'concluido' ||
+        stLower === 'completed' ||
+        stLower === 'processado' ||
+        stLower === 'faturado' ||
+        stLower === 'pago' ||
+        stLower === 'paid'
+      );
     });
     
     if (allServicesCompleted) {
       // Se todos os serviços estão concluídos, mudar o veículo para ativo
       await query(
         'UPDATE vehicles SET status = $1 WHERE id = $2',
-        ['active', existingService.vehicle_id]
+        ['active', existingService.vehicleId]
       );
     } else {
       // Se ainda há serviços não concluídos, manter o veículo em manutenção
       await query(
         'UPDATE vehicles SET status = $1 WHERE id = $2',
-        ['maintenance', existingService.vehicle_id]
+        ['maintenance', existingService.vehicleId]
       );
     }
     
@@ -394,10 +404,20 @@ router.put('/:id', serviceValidation, handleValidationErrors, async (req, res) =
       [vehicle_id]
     );
 
-    // Verificar se todos os serviços estão concluídos (compatível PT/EN)
+    // Verificar se todos os serviços estão concluídos (compatível PT/EN e sinônimos)
     const allServicesCompleted = allVehicleServices.rows.every(s => {
-      const st = (s.status || '').toLowerCase();
-      return st === 'concluído' || st === 'completed';
+      const raw = (s.status || '').toString().trim();
+      const stLower = raw.toLowerCase();
+      const stNorm = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      return (
+        stLower === 'concluído' ||
+        stNorm === 'concluido' ||
+        stLower === 'completed' ||
+        stLower === 'processado' ||
+        stLower === 'faturado' ||
+        stLower === 'pago' ||
+        stLower === 'paid'
+      );
     });
 
     // Atualizar status do veículo conforme resultado
