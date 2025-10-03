@@ -286,3 +286,49 @@ Para suporte e dúvidas:
 ---
 
 **Desenvolvido para otimizar a gestão de frotas e oficinas automotivas.**
+
+## 🚀 Deploy (Railway + Vercel)
+
+### Backend no Railway
+- Conecte via `Repositório GitHub` e selecione este repo.
+- Configure:
+  - `Root Directory`: `backend`
+  - `Build Command`: `npm install`
+  - `Start Command`: `npm start`
+- Variáveis de ambiente (Service → Variables):
+  - `DATABASE_URL`: string do Postgres do Railway
+  - `JWT_SECRET`: chave forte de sua escolha
+  - `NODE_ENV=production`
+  - `FRONTEND_URL=https://<seu-domínio-vercel>`
+- Executar migrations no Shell do serviço Web (Node):
+  - `npm run migrate 001_create_tables.sql`
+  - `npm run migrate 002_add_client_fields.sql`
+  - `npm run migrate 003_add_service_fields.sql`
+  - `npm run migrate 004_add_vehicle_status.sql`
+  - `npm run migrate 005_modify_service_type_for_multiple.sql`
+  - `npm run migrate 006_create_rental_system.sql`
+  - `npm run migrate 007_create_damage_system.sql`
+  - `npm run migrate 008_create_partial_payments.sql`
+  - `npm run migrate 009_create_contract_history.sql`
+  - `npm run migrate 010_update_service_status.sql`
+  - `npm run migrate 011_make_vehicle_client_optional.sql`
+- Opcional (dados exemplo): `npm run seed`
+- Health check: abra `https://<app>.up.railway.app/api/health` e valide `200` com JSON.
+
+### Frontend no Vercel
+- Conecte o repositório e selecione a pasta `frontend`.
+- Variáveis de ambiente:
+  - `REACT_APP_API_URL=https://<app>.up.railway.app/api`
+- Build:
+  - `Build Command`: `npm run build`
+  - `Output Directory`: `build`
+- Após publicar, a aplicação consumirá o backend pela URL acima.
+
+### Desenvolvimento vs Produção
+- Dev: proxy do React mapeia `'/api'` para `http://localhost:5000` (`frontend/src/setupProxy.js`).
+- Prod: o `ApiService` usa `process.env.REACT_APP_API_URL` (definido no Vercel).
+
+### Dicas e Troubleshooting
+- CORS: ajuste `FRONTEND_URL` no backend para o domínio Vercel (e previews, se necessário).
+- Respostas `304 Not Modified`: em dev desativamos ETag e adicionamos `no-cache` no backend.
+- Porta: Railway injeta `PORT`; o backend usa `process.env.PORT || 5000`.
