@@ -1,7 +1,21 @@
 // Em desenvolvimento, prefira usar o proxy do dev server
 // para evitar CORS: base relativa '/api'. Em produção,
 // REACT_APP_API_URL deve apontar para o backend absoluto.
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+const isProd = process.env.NODE_ENV === 'production';
+const API_BASE_URL = (() => {
+  const envUrl = process.env.REACT_APP_API_URL;
+  if (envUrl) return envUrl;
+  if (isProd) {
+    // Ajuda de diagnóstico em produção quando a URL não está configurada
+    // Isso evita o erro genérico e orienta a configuração correta no Vercel.
+    // A base '/api' no Vercel normalmente resultará em "Service Unavailable".
+    // Configure REACT_APP_API_URL para o backend (ex.: https://<app>.up.railway.app/api).
+    // Mantemos '/api' como fallback para não quebrar o app, mas emitimos alerta.
+    // eslint-disable-next-line no-console
+    console.warn('[ApiService] REACT_APP_API_URL não definido em produção. Configure a URL do backend (ex.: https://<app>.up.railway.app/api).');
+  }
+  return '/api';
+})();
 
 class ApiService {
   constructor() {
@@ -10,12 +24,17 @@ class ApiService {
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    const controller = new AbortController();
+    const timeoutMs = options.timeoutMs || 10000; // timeout gentil para evitar hangs
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     const config = {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
       ...options,
+      signal: controller.signal,
     };
 
     if (config.body && typeof config.body === 'object') {
@@ -45,8 +64,16 @@ class ApiService {
 
       return data;
     } catch (error) {
-      console.error(`Erro na API (${endpoint}):`, error);
-      throw error;
+      // Normaliza mensagens para casos comuns em produção (Vercel sem backend configurado)
+      const isAbort = error.name === 'AbortError';
+      const baseMsg = isAbort ? 'Tempo de resposta excedido' : (error.message || 'Falha na requisição');
+      const hint = isProd && !process.env.REACT_APP_API_URL
+        ? 'Backend não acessível. Defina REACT_APP_API_URL no Vercel para apontar para seu backend (ex.: https://<app>.up.railway.app/api).'
+        : '';
+      const normalized = `${baseMsg}${hint ? ` — ${hint}` : ''}`;
+      // eslint-disable-next-line no-console
+      console.error(`Erro na API (${endpoint}):`, normalized);
+      throw new Error(normalized);
     }
   }
 

@@ -405,7 +405,17 @@ const Dashboard = () => {
             Ações Rápidas
           </h2>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div
+            className="scrollbar-hide"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              maxHeight: '240px',
+              overflowY: 'auto',
+              paddingRight: '6px'
+            }}
+          >
             <button style={{
               display: 'flex',
               alignItems: 'center',
