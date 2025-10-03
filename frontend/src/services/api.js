@@ -14,7 +14,9 @@ const API_BASE_URL = (() => {
     // eslint-disable-next-line no-console
     console.warn('[ApiService] REACT_APP_API_URL não definido em produção. Configure a URL do backend (ex.: https://<app>.up.railway.app/api).');
   }
-  return '/api';
+  // Desenvolvimento: usar alvo absoluto para evitar problemas de proxy
+  // Isso garante que as chamadas batam diretamente no backend local.
+  return 'http://localhost:5000/api';
 })();
 
 class ApiService {

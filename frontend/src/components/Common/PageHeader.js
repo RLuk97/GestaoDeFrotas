@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Search, User, Settings, X, AlertTriangle, Wrench, DollarSign, FileText, Clock } from 'lucide-react';
 import { useNotifications } from '../../context/NotificationContext';
 
 const PageHeader = ({ title, subtitle, showSearch = false, showNotifications = true, showUserMenu = true }) => {
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const navigate = useNavigate();
   
   // Usar o contexto de notificações
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
@@ -126,7 +128,13 @@ const PageHeader = ({ title, subtitle, showSearch = false, showNotifications = t
                     
                     {notifications.length > 0 && (
                       <div className="p-3 border-t border-gray-200">
-                        <button className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium">
+                        <button
+                          className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+                          onClick={() => {
+                            setShowNotificationDropdown(false);
+                            navigate('/notifications');
+                          }}
+                        >
                           Ver todas as notificações
                         </button>
                       </div>

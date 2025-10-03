@@ -350,14 +350,20 @@ const Clients = () => {
                         <div className="flex justify-center space-x-2">
                           <Link
                             to={`/clients/${client.id}/history`}
-                            className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
-                            title="Ver Histórico"
+                            className="hidden"
+                            aria-hidden="true"
+                          />
+                          <button
+                            type="button"
+                            className="p-2 text-gray-400 bg-gray-50 rounded-lg cursor-not-allowed"
+                            title="Em desenvolvimento"
+                            aria-disabled="true"
                           >
                             <History className="h-4 w-4" />
-                          </Link>
+                          </button>
                           <button
                             onClick={() => handleEditClient(client)}
-                            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
                             title="Editar"
                           >
                             <Edit className="h-4 w-4" />

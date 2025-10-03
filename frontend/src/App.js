@@ -9,6 +9,8 @@ import Clients from './pages/Clients';
 import VehicleDetails from './pages/VehicleDetails';
 import ServiceDetails from './pages/ServiceDetails';
 import ClientHistory from './pages/ClientHistory';
+import Activities from './pages/Activities';
+import Notifications from './pages/Notifications';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Layout><Dashboard /></Layout>} />
             <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+            <Route path="/activities" element={<Layout><Activities /></Layout>} />
+            <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
             <Route path="/vehicles" element={<Layout><Vehicles /></Layout>} />
             <Route path="/vehicles/:id" element={<Layout><VehicleDetails /></Layout>} />
             <Route path="/services" element={<Layout><Services /></Layout>} />

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Car, Wrench, AlertTriangle, DollarSign, Plus, Calendar, FileText, Eye, Users, User, UserCheck, UserX, Gauge, CheckCircle, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Car, Wrench, AlertTriangle, DollarSign, Plus, Calendar, FileText, Eye, Users, User, UserCheck, UserX, Gauge, CheckCircle, Clock, Trash2, Edit as EditIcon } from 'lucide-react';
 import apiService from '../services/api';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
     totalVehicles: 0,
+    activeVehicles: 0,
     servicesInProgress: 0,
     totalClients: 0,
     monthlyRevenue: 0,
@@ -20,19 +23,25 @@ const Dashboard = () => {
     try {
       setLoading(true);
       
-      // Buscar dados de veículos, serviços e clientes
-      const [vehiclesResponse, servicesResponse, clientsResponse] = await Promise.all([
+      // Buscar dados com resiliência: não quebrar se atividades falharem
+      const results = await Promise.allSettled([
         apiService.getVehicles(),
         apiService.getServices(),
-        apiService.getClients()
+        apiService.getClients(),
+        apiService.getRecentActivities(5)
       ]);
 
-      const vehicles = vehiclesResponse || [];
-      const services = servicesResponse || [];
-      const clients = clientsResponse || [];
+      const vehicles = results[0].status === 'fulfilled' ? (results[0].value || []) : [];
+      const services = results[1].status === 'fulfilled' ? (results[1].value || []) : [];
+      const clients = results[2].status === 'fulfilled' ? (results[2].value || []) : [];
+      const recentActivitiesApi = results[3].status === 'fulfilled' ? (results[3].value || []) : [];
+      if (results[3].status !== 'fulfilled') {
+        console.warn('Atividades recentes indisponíveis:', results[3].reason);
+      }
 
       // Calcular métricas
       const totalVehicles = vehicles.length;
+      const activeVehicles = vehicles.filter(v => (v.status || '').toLowerCase() === 'active').length;
       const servicesInProgress = services.filter(service => 
         service.paymentStatus === 'pending' || 
         service.paymentStatus === 'in_progress'
@@ -64,20 +73,12 @@ const Dashboard = () => {
         })
         .reduce((total, service) => total + (parseFloat(service.totalValue) || 0), 0);
 
-      // Atividades recentes (últimos 5 serviços)
-      const recentActivities = services
-        .sort((a, b) => new Date(b.data_servico || b.createdAt) - new Date(a.data_servico || a.createdAt))
-        .slice(0, 5)
-        .map(service => ({
-          id: service.id,
-          description: service.descricao || `Serviço para veículo ${service.veiculo_id}`,
-          value: parseFloat(service.valor) || 0,
-          status: service.status,
-          date: service.data_servico || service.createdAt
-        }));
+      // Atividades recentes vindas da API
+      const recentActivities = Array.isArray(recentActivitiesApi) ? recentActivitiesApi : [];
 
       setDashboardData({
         totalVehicles,
+        activeVehicles,
         servicesInProgress,
         totalClients,
         monthlyRevenue: monthlyExpense,
@@ -89,6 +90,7 @@ const Dashboard = () => {
       // Manter valores padrão em caso de erro
       setDashboardData({
         totalVehicles: 0,
+        activeVehicles: 0,
         servicesInProgress: 0,
         totalClients: 0,
         monthlyRevenue: 0,
@@ -116,6 +118,12 @@ const Dashboard = () => {
         return '#17a2b8'; // Azul para pendente
       case 'cancelled':
         return '#dc3545'; // Vermelho para cancelado
+      case 'created':
+        return '#3b82f6'; // Azul para criado
+      case 'updated':
+        return '#a78bfa'; // Roxo para atualizado
+      case 'deleted':
+        return '#ef4444'; // Vermelho para excluído
       default:
         return '#6c757d'; // Cinza para outros
     }
@@ -131,9 +139,28 @@ const Dashboard = () => {
         return 'Pendente';
       case 'cancelled':
         return 'Cancelado';
+      case 'created':
+        return 'Criado';
+      case 'updated':
+        return 'Atualizado';
+      case 'deleted':
+        return 'Excluído';
       default:
         return 'Desconhecido';
     }
+  };
+
+  // Ícone por tipo de entidade/ação
+  const getActivityIcon = (activity) => {
+    const type = String(activity.entityType || '').toLowerCase();
+    const status = String(activity.status || '').toLowerCase();
+    const color = getStatusColor(status);
+    const commonStyle = { marginRight: '12px' };
+    if (status === 'deleted') return <Trash2 size={16} color={color} style={commonStyle} />;
+    if (status === 'updated') return <EditIcon size={16} color={color} style={commonStyle} />;
+    if (type === 'vehicle') return <Car size={16} color={color} style={commonStyle} />;
+    if (type === 'client') return <Users size={16} color={color} style={commonStyle} />;
+    return <Wrench size={16} color={color} style={commonStyle} />; // default service
   };
 
   if (loading) {
@@ -233,7 +260,7 @@ const Dashboard = () => {
             fontSize: '12px', 
             color: '#94a3b8'
           }}>
-            2º ativos
+            {dashboardData.activeVehicles} ativos
           </div>
         </div>
 
@@ -384,16 +411,14 @@ const Dashboard = () => {
       <div style={{ 
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-        gap: '24px',
-        flex: 1,
-        overflowY: 'auto'
+        gap: '24px'
       }}>
         {/* Ações Rápidas */}
         <div style={{
           backgroundColor: 'white',
           borderRadius: '12px',
           padding: '24px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          boxShadow: 'none',
           border: '1px solid #e5e7eb'
         }}>
           <h2 style={{ 
@@ -410,16 +435,20 @@ const Dashboard = () => {
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px',
-              maxHeight: '240px',
+              gap: '6px',
+              maxHeight: '204px',
               overflowY: 'auto',
-              paddingRight: '6px'
+              overflowX: 'hidden',
+              paddingRight: '6px',
+              paddingTop: '6px',
+              paddingBottom: '6px'
             }}
           >
             <button style={{
               display: 'flex',
               alignItems: 'center',
-              padding: '16px',
+              padding: '8px',
+              minHeight: '60px',
               background: 'linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)',
               border: 'none',
               borderRadius: '8px',
@@ -427,9 +456,28 @@ const Dashboard = () => {
               textAlign: 'left',
               width: '100%',
               color: '#ffffff',
-              boxShadow: '0 8px 20px rgba(37, 99, 235, 0.25)',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-            }}>
+              boxShadow: 'none',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.filter = 'brightness(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.filter = 'brightness(1)';
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(0.98)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+            >
               <Plus size={20} color="#ffffff" style={{ marginRight: '12px' }} />
               <div>
                 <div style={{ fontWeight: '600', color: '#ffffff' }}>Cadastrar Veículo</div>
@@ -440,7 +488,8 @@ const Dashboard = () => {
             <button style={{
               display: 'flex',
               alignItems: 'center',
-              padding: '16px',
+              padding: '8px',
+              minHeight: '60px',
               background: 'linear-gradient(135deg, #fb923c 0%, #f59e0b 100%)',
               border: 'none',
               borderRadius: '8px',
@@ -448,9 +497,28 @@ const Dashboard = () => {
               textAlign: 'left',
               width: '100%',
               color: '#ffffff',
-              boxShadow: '0 8px 20px rgba(245, 158, 11, 0.25)',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-            }}>
+              boxShadow: 'none',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.filter = 'brightness(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.filter = 'brightness(1)';
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(0.98)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+            >
               <Calendar size={20} color="#ffffff" style={{ marginRight: '12px' }} />
               <div>
                 <div style={{ fontWeight: '600', color: '#ffffff' }}>Agendar Manutenção</div>
@@ -461,7 +529,8 @@ const Dashboard = () => {
             <button style={{
               display: 'flex',
               alignItems: 'center',
-              padding: '16px',
+              padding: '8px',
+              minHeight: '60px',
               background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
               border: 'none',
               borderRadius: '8px',
@@ -469,9 +538,28 @@ const Dashboard = () => {
               textAlign: 'left',
               width: '100%',
               color: '#ffffff',
-              boxShadow: '0 8px 20px rgba(124, 58, 237, 0.25)',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-            }}>
+              boxShadow: 'none',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.filter = 'brightness(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.filter = 'brightness(1)';
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(0.98)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+            >
               <FileText size={20} color="#ffffff" style={{ marginRight: '12px' }} />
               <div>
                 <div style={{ fontWeight: '600', color: '#ffffff' }}>Relatórios</div>
@@ -514,30 +602,41 @@ const Dashboard = () => {
               cursor: 'pointer',
               fontSize: '12px',
               color: '#6b7280'
-            }}>
+            }} onClick={() => navigate('/activities')}>
               <Eye size={16} />
               Ver Todas
             </button>
           </div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div
+            className="scrollbar-hide"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              maxHeight: '192px',
+              overflowY: 'auto',
+              paddingRight: '6px'
+            }}
+          >
             {dashboardData.recentActivities.length > 0 ? (
               dashboardData.recentActivities.map((activity, index) => (
                 <div key={activity.id || index} style={{
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '12px',
+                  minHeight: '60px',
+                  padding: '8px',
                   backgroundColor: '#f9fafb',
                   borderRadius: '8px',
                   border: '1px solid #f3f4f6'
                 }}>
                   <div style={{
-                    backgroundColor: '#dbeafe',
+                    backgroundColor: '#f1f5f9',
                     padding: '8px',
                     borderRadius: '50%',
                     marginRight: '12px'
                   }}>
-                    <Wrench size={16} color="#2563eb" />
+                    {getActivityIcon(activity)}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ 
@@ -547,13 +646,15 @@ const Dashboard = () => {
                     }}>
                       {activity.description}
                     </div>
-                    <div style={{ 
-                      fontSize: '14px', 
-                      fontWeight: '600',
-                      color: '#16a34a'
-                    }}>
-                      + {formatCurrency(activity.value || 0)}
-                    </div>
+                    {(activity.value || 0) > 0 && (
+                      <div style={{ 
+                        fontSize: '14px', 
+                        fontWeight: '600',
+                        color: activity.status === 'deleted' ? '#ef4444' : '#16a34a'
+                      }}>
+                        {activity.status === 'deleted' ? '-' : '+'} {formatCurrency(activity.value || 0)}
+                      </div>
+                    )}
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <span style={{

@@ -278,21 +278,21 @@ const Vehicles = () => {
                   <div className="flex space-x-2">
                     <Link
                       to={`/vehicles/${vehicle.id}`}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                      className="p-2 text-blue-600 hover:text-blue-700 transition-colors rounded-lg hover:bg-blue-50"
                       title="Ver detalhes"
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
                     <button
                       onClick={() => handleEditVehicle(vehicle)}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                      className="p-2 text-amber-600 hover:text-amber-700 transition-colors rounded-lg hover:bg-amber-50"
                       title="Editar"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteVehicle(vehicle)}
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                      className="p-2 text-red-600 hover:text-red-700 transition-colors rounded-lg hover:bg-red-50"
                       title="Excluir"
                     >
                       <Trash2 className="h-4 w-4" />

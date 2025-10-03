@@ -176,7 +176,11 @@ const ServiceDetails = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-brand-primary">
-            Detalhes do Serviço #{service.id}
+            {(() => {
+              const index = state.services.findIndex(s => s.id === service.id);
+              const seq = index >= 0 ? index + 1 : null;
+              return `Detalhes do Serviço ${seq ? `#${seq}` : ''}`.trim();
+            })()}
           </h1>
           <p className="text-brand-muted mt-1">
             Informações completas sobre o serviço realizado

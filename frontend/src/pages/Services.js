@@ -23,7 +23,7 @@ const Services = () => {
   const { state, dispatch, getVehicleById, refreshVehicles } = useApp();
   const { addServiceNotification } = useNotifications();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   // Debug logs
   console.log('=== Services Debug ===');
@@ -33,7 +33,7 @@ const Services = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [vehicleFilter] = useState(searchParams.get('vehicle') || 'all');
+  const [vehicleFilter, setVehicleFilter] = useState(searchParams.get('vehicle') || 'all');
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,8 +47,18 @@ const Services = () => {
     if (urlParams.get('openModal') === 'true') {
       console.log('Abrindo modal automaticamente');
       handleAddService();
+      // Evitar reabertura do modal ao atualizar estado
+      const params = new URLSearchParams(location.search);
+      params.delete('openModal');
+      setSearchParams(params);
     }
   }, [location]);
+
+  // Sincronizar filtro de veículo com parâmetros da URL
+  useEffect(() => {
+    const nextVehicle = searchParams.get('vehicle') || 'all';
+    setVehicleFilter(nextVehicle);
+  }, [location.search]);
 
   // Filtrar e ordenar serviços
   const filteredServices = state.services
@@ -200,6 +210,13 @@ const Services = () => {
         
         // Recarregar dados de veículos para atualizar status e quilometragem
         await refreshVehicles();
+        
+        // Limpar filtro de veículo da URL para não esconder a lista
+        const params = new URLSearchParams(location.search);
+        params.delete('vehicle');
+        params.delete('openModal');
+        setSearchParams(params);
+        setVehicleFilter('all');
         
         console.log('Novo serviço criado com sucesso');
       }
@@ -519,14 +536,14 @@ const Services = () => {
                           <div className="flex justify-center space-x-2">
                             <Link
                               to={`/services/${service.id}`}
-                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                              className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
                               title="Ver detalhes"
                             >
                               <Eye className="h-4 w-4" />
                             </Link>
                             <button
                               onClick={() => handleEditService(service)}
-                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                              className="p-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-all duration-200"
                               title="Editar"
                             >
                               <Edit className="h-4 w-4" />
@@ -618,6 +635,12 @@ const Services = () => {
         onClose={() => {
           setShowForm(false);
           setEditingService(null);
+          // Limpar parâmetros da URL ao fechar o modal
+          const params = new URLSearchParams(location.search);
+          params.delete('vehicle');
+          params.delete('openModal');
+          setSearchParams(params);
+          setVehicleFilter('all');
         }}
         title={editingService ? 'Editar Serviço' : 'Novo Serviço'}
         size="lg"
@@ -628,6 +651,12 @@ const Services = () => {
           onCancel={() => {
             setShowForm(false);
             setEditingService(null);
+            // Limpar parâmetros da URL ao cancelar
+            const params = new URLSearchParams(location.search);
+            params.delete('vehicle');
+            params.delete('openModal');
+            setSearchParams(params);
+            setVehicleFilter('all');
           }}
           preselectedVehicleId={(() => {
             const preselectedId = vehicleFilter !== 'all' ? vehicleFilter : 

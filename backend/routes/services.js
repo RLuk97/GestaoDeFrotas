@@ -209,14 +209,17 @@ router.post('/', serviceValidation, handleValidationErrors, async (req, res) => 
 
     // Registrar atividade: serviço criado
     try {
+      const typeStr = Array.isArray(fullService.type)
+        ? fullService.type.join(', ')
+        : (fullService.type || service_type);
       await ActivityLog.create({
         entity_type: 'service',
         action: 'created',
         entity_id: fullService.id,
-        title: `Serviço criado: ${fullService.serviceType || service_type}`,
-        description: `Veículo ${fullService.vehicleLicensePlate || vehicle.license_plate}`,
-        amount: Number(fullService.cost || cost || 0),
-        status: (fullService.status || status || 'Pendente')
+        title: `Serviço criado: ${typeStr}`,
+        description: `Veículo ${fullService.vehiclePlate || vehicle.license_plate}`,
+        amount: Number(fullService.totalValue || cost || 0),
+        status: (fullService.paymentStatus || status || 'Pendente')
       });
     } catch (e) { console.warn('Falha ao registrar ActivityLog (create service):', e.message); }
 
@@ -321,13 +324,16 @@ router.patch('/:id/status', async (req, res) => {
     
     // Registrar atividade: status de serviço atualizado
     try {
+      const typeStr = Array.isArray(service.type)
+        ? service.type.join(', ')
+        : service.type;
       await ActivityLog.create({
         entity_type: 'service',
         action: 'updated',
         entity_id: service.id,
-        title: `Status do serviço atualizado: ${service.serviceType}`,
-        description: `Veículo ${service.vehicleLicensePlate}`,
-        amount: Number(service.cost || 0),
+        title: `Status do serviço atualizado: ${typeStr}`,
+        description: `Veículo ${service.vehiclePlate || existingService.vehiclePlate || existingService.vehicleId}`,
+        amount: Number(service.totalValue || 0),
         status: backendStatus
       });
     } catch (e) { console.warn('Falha ao registrar ActivityLog (update service status):', e.message); }
@@ -457,14 +463,17 @@ router.put('/:id', serviceValidation, handleValidationErrors, async (req, res) =
     
     // Registrar atividade: serviço atualizado
     try {
+      const typeStr = Array.isArray(service.type)
+        ? service.type.join(', ')
+        : (service.type || service_type);
       await ActivityLog.create({
         entity_type: 'service',
         action: 'updated',
         entity_id: service.id,
-        title: `Serviço atualizado: ${service.serviceType || service_type}`,
+        title: `Serviço atualizado: ${typeStr}`,
         description: `Veículo ${vehicle.license_plate}`,
-        amount: Number(service.cost || cost || 0),
-        status: (service.status || status)
+        amount: Number(service.totalValue || cost || 0),
+        status: (service.paymentStatus || status)
       });
     } catch (e) { console.warn('Falha ao registrar ActivityLog (update service):', e.message); }
 
@@ -504,9 +513,9 @@ router.delete('/:id', async (req, res) => {
           entity_type: 'service',
           action: 'deleted',
           entity_id: existingService.id,
-          title: `Serviço excluído: ${existingService.serviceType || 'Serviço'}`,
-          description: `Veículo ${existingService.vehicleLicensePlate || existingService.vehicleId}`,
-          amount: Number(existingService.cost || 0),
+          title: `Serviço excluído: ${Array.isArray(existingService.type) ? existingService.type.join(', ') : (existingService.type || 'Serviço')}`,
+          description: `Veículo ${existingService.vehiclePlate || existingService.vehicleId}`,
+          amount: Number(existingService.totalValue || 0),
           status: 'deleted'
         });
       } catch (e) { console.warn('Falha ao registrar ActivityLog (delete service):', e.message); }
