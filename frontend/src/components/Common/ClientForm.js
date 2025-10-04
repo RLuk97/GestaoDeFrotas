@@ -52,6 +52,11 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
 
     if (!formData.document.trim()) {
       newErrors.document = 'CPF/CNPJ é obrigatório';
+    } else {
+      const digits = formData.document.replace(/\D/g, '');
+      if (digits.length !== 11 && digits.length !== 14) {
+        newErrors.document = 'Informe CPF com 11 dígitos ou CNPJ com 14 dígitos';
+      }
     }
 
     if (!formData.address.trim()) {
@@ -105,15 +110,30 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
   };
 
   const formatDocument = (value) => {
-    // Remove tudo que não é dígito
-    const cleaned = value.replace(/\D/g, '');
-    
-    // CPF: XXX.XXX.XXX-XX
+    // Remove tudo que não é dígito e limita a 14 dígitos
+    let cleaned = value.replace(/\D/g, '');
+    cleaned = cleaned.slice(0, 14);
+
+    // CPF: XXX.XXX.XXX-XX (até 11 dígitos)
     if (cleaned.length <= 11) {
-      return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+      return cleaned.replace(/(\d{3})(\d{0,3})(\d{0,3})(\d{0,2})/, (match, p1, p2, p3, p4) => {
+        let out = p1;
+        if (p2) out += '.' + p2;
+        if (p3) out += '.' + p3;
+        if (p4) out += '-' + p4;
+        return out;
+      });
     }
-    // CNPJ: XX.XXX.XXX/XXXX-XX
-    return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+
+    // CNPJ: XX.XXX.XXX/XXXX-XX (14 dígitos)
+    return cleaned.replace(/(\d{2})(\d{0,3})(\d{0,3})(\d{0,4})(\d{0,2})/, (match, p1, p2, p3, p4, p5) => {
+      let out = p1;
+      if (p2) out += '.' + p2;
+      if (p3) out += '.' + p3;
+      if (p4) out += '/' + p4;
+      if (p5) out += '-' + p5;
+      return out;
+    });
   };
 
   const formatZipCode = (value) => {
@@ -132,6 +152,10 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
   const handleDocumentChange = (e) => {
     const formatted = formatDocument(e.target.value);
     setFormData(prev => ({ ...prev, document: formatted }));
+
+    if (errors.document) {
+      setErrors(prev => ({ ...prev, document: '' }));
+    }
   };
 
   const handleZipCodeChange = (e) => {

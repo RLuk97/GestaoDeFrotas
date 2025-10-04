@@ -32,6 +32,14 @@ const clientValidation = [
     .withMessage('Telefone deve ser válido'),
   body('document')
     .optional()
+    .custom((value) => {
+      const digits = String(value).replace(/\D/g, '');
+      if (digits.length === 0) return true; // permitido vazio (opcional)
+      if (digits.length !== 11 && digits.length !== 14) {
+        throw new Error('Documento deve conter CPF (11 dígitos) ou CNPJ (14 dígitos)');
+      }
+      return true;
+    })
     .isLength({ max: 20 })
     .withMessage('Documento deve ter no máximo 20 caracteres'),
   body('address')
