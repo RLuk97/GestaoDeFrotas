@@ -23,36 +23,41 @@ import {
 import Breadcrumb from '../Common/Breadcrumb';
 import PageHeader from '../Common/PageHeader';
 import Logo from '../Common/Logo';
+import SettingsModal from '../Common/SettingsModal';
+import { useSettings } from '../../context/SettingsContext';
+import { useI18n } from '../../utils/i18n';
 
 const Layout = ({ children, pageTitle, pageSubtitle }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const [showFutureUpgrade, setShowFutureUpgrade] = useState(true);
+  const { settings, updateSettings } = useSettings();
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const location = useLocation();
   const isDashboard = location.pathname === '/' || location.pathname.startsWith('/dashboard');
+  const { t } = useI18n();
 
   // Módulos ativos
   const activeNavigation = [
     {
-      name: 'Dashboard',
+      name: t('navigation.dashboard'),
       href: '/dashboard',
       icon: LayoutDashboard,
       current: location.pathname === '/' || location.pathname === '/dashboard'
     },
     {
-      name: 'Clientes',
+      name: t('navigation.clients'),
       href: '/clients',
       icon: Users,
       current: location.pathname.startsWith('/clients')
     },
     {
-      name: 'Veículos',
+      name: t('navigation.vehicles'),
       href: '/vehicles',
       icon: Car,
       current: location.pathname.startsWith('/vehicles')
     },
     {
-      name: 'Serviços',
+      name: t('navigation.services'),
       href: '/services',
       icon: Wrench,
       current: location.pathname.startsWith('/services')
@@ -62,56 +67,56 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
   // Módulos de upgrade futuro
   const futureUpgradeNavigation = [
     {
-      name: 'Dashboard Financeiro',
+      name: t('navigation.future.financeDashboard'),
       href: '/rentals',
       icon: DollarSign,
       current: location.pathname.startsWith('/rentals'),
       disabled: true
     },
     {
-      name: 'Relatório de Inadimplência',
+      name: t('navigation.future.defaultReport'),
       href: '/default-report',
       icon: AlertTriangle,
       current: location.pathname.startsWith('/default-report'),
       disabled: true
     },
     {
-      name: 'Controle de Pagamentos',
+      name: t('navigation.future.paymentControl'),
       href: '/payment-control',
       icon: CreditCard,
       current: location.pathname.startsWith('/payment-control'),
       disabled: true
     },
     {
-      name: 'Histórico de Contratos',
+      name: t('navigation.future.contractHistory'),
       href: '/contract-history',
       icon: FileText,
       current: location.pathname.startsWith('/contract-history'),
       disabled: true
     },
     {
-      name: 'Transferências',
+      name: t('navigation.future.transfers'),
       href: '/vehicle-transfers',
       icon: ArrowRightLeft,
       current: location.pathname.startsWith('/vehicle-transfers'),
       disabled: true
     },
     {
-      name: 'Pagamentos Parciais',
+      name: t('navigation.future.partialPayments'),
       href: '/partial-payments',
       icon: Receipt,
       current: location.pathname.startsWith('/partial-payments'),
       disabled: true
     },
     {
-      name: 'Saldos Devedores',
+      name: t('navigation.future.outstandingBalances'),
       href: '/outstanding-balances',
       icon: AlertCircle,
       current: location.pathname.startsWith('/outstanding-balances'),
       disabled: true
     },
     {
-      name: 'Peças',
+      name: t('navigation.future.parts'),
       href: '/parts',
       icon: Package,
       current: location.pathname.startsWith('/parts'),
@@ -176,11 +181,11 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
                 </h3>
                 <button
                   type="button"
-                  aria-label={showFutureUpgrade ? 'Recolher módulos' : 'Expandir módulos'}
+                  aria-label={settings.showFutureUpgrade ? 'Recolher módulos' : 'Expandir módulos'}
                   className="p-1 rounded hover:bg-gray-200 text-gray-600"
-                  onClick={() => setShowFutureUpgrade(prev => !prev)}
+                  onClick={() => updateSettings({ showFutureUpgrade: !settings.showFutureUpgrade })}
                 >
-                  {showFutureUpgrade ? (
+                  {settings.showFutureUpgrade ? (
                     <ChevronUp className="h-4 w-4" />
                   ) : (
                     <ChevronDown className="h-4 w-4" />
@@ -190,7 +195,7 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
             </div>
 
             {/* Módulos de Upgrade Futuro */}
-            {showFutureUpgrade && futureUpgradeNavigation.map((item) => {
+            {settings.showFutureUpgrade && futureUpgradeNavigation.map((item) => {
               const Icon = item.icon;
               return (
                 <div
@@ -292,11 +297,11 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
                   </h3>
                   <button
                     type="button"
-                    aria-label={showFutureUpgrade ? 'Recolher módulos' : 'Expandir módulos'}
+                    aria-label={settings.showFutureUpgrade ? 'Recolher módulos' : 'Expandir módulos'}
                     className="p-1 rounded hover:bg-gray-200 text-gray-600"
-                    onClick={() => setShowFutureUpgrade(prev => !prev)}
+                    onClick={() => updateSettings({ showFutureUpgrade: !settings.showFutureUpgrade })}
                   >
-                    {showFutureUpgrade ? (
+                    {settings.showFutureUpgrade ? (
                       <ChevronUp className="h-4 w-4" />
                     ) : (
                       <ChevronDown className="h-4 w-4" />
@@ -307,7 +312,7 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
             )}
 
             {/* Módulos de Upgrade Futuro */}
-            {showFutureUpgrade && futureUpgradeNavigation.map((item) => {
+            {settings.showFutureUpgrade && futureUpgradeNavigation.map((item) => {
               const Icon = item.icon;
               return (
                 <div
@@ -372,6 +377,8 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
           <PageHeader 
             title={pageTitle || 'Gestão de Frota'} 
             subtitle={pageSubtitle}
+            showNotifications={settings.showNotifications}
+            onSettingsClick={() => setShowSettingsModal(true)}
           />
         </div>
 
@@ -385,6 +392,7 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
           </div>
         </main>
       </div>
+      <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
     </div>
   );
 };

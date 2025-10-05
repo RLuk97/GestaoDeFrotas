@@ -51,7 +51,25 @@ const vehicleValidation = [
   body('mileage')
     .optional()
     .isInt({ min: 0 })
-    .withMessage('Quilometragem deve ser um número positivo')
+    .withMessage('Quilometragem deve ser um número positivo'),
+  // RENAVAM opcional no backend; se enviado, precisa ter 11 dígitos
+  body('renavam')
+    .optional({ nullable: true })
+    .matches(/^\d{11}$/)
+    .withMessage('RENAVAM deve conter exatamente 11 dígitos'),
+  // Status de documentação (opcionais)
+  body('licensing_status')
+    .optional({ nullable: true })
+    .isIn(['Em dia', 'Vencido', 'Pendente', ''])
+    .withMessage('Status de licenciamento inválido'),
+  body('insurance_status')
+    .optional({ nullable: true })
+    .isIn(['Ativo', 'Vencido', 'Cancelado', 'Pendente', ''])
+    .withMessage('Status de seguro inválido'),
+  body('ipva_status')
+    .optional({ nullable: true })
+    .isIn(['Pago', 'Em atraso', 'Isento', 'Parcelado', ''])
+    .withMessage('Status de IPVA inválido')
 ];
 
 // GET /api/vehicles - Listar todos os veículos
@@ -110,7 +128,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/vehicles - Criar novo veículo
 router.post('/', vehicleValidation, handleValidationErrors, async (req, res) => {
   try {
-    const { client_id, brand, model, year, license_plate, color, fuel_type, mileage } = req.body;
+    const { client_id, brand, model, year, license_plate, color, fuel_type, mileage, renavam, licensing_status, insurance_status, ipva_status } = req.body;
     
     // Verificar cliente apenas se fornecido
     if (client_id) {
@@ -139,7 +157,11 @@ router.post('/', vehicleValidation, handleValidationErrors, async (req, res) => 
       license_plate: license_plate.toUpperCase(),
       color,
       fuel_type: fuel_type || 'Gasolina',
-      mileage: mileage || 0
+      mileage: mileage || 0,
+      renavam: renavam || null,
+      licensing_status: licensing_status || null,
+      insurance_status: insurance_status || null,
+      ipva_status: ipva_status || null
     });
     
     // Log de atividade: veículo criado
@@ -176,7 +198,7 @@ router.post('/', vehicleValidation, handleValidationErrors, async (req, res) => 
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { client_id, brand, model, year, license_plate, color, fuel_type, mileage, status } = req.body;
+    const { client_id, brand, model, year, license_plate, color, fuel_type, mileage, status, renavam, licensing_status, insurance_status, ipva_status } = req.body;
     
     // Verificar se veículo existe
     const existingVehicle = await Vehicle.findById(id);
@@ -248,7 +270,11 @@ router.put('/:id', async (req, res) => {
       color: color || existingVehicle.color,
       fuel_type: fuel_type || existingVehicle.fuel_type,
       mileage: mileage !== undefined ? mileage : existingVehicle.mileage,
-      status: status || existingVehicle.status
+      status: status || existingVehicle.status,
+      renavam: renavam !== undefined ? renavam : existingVehicle.renavam,
+      licensing_status: licensing_status !== undefined ? licensing_status : existingVehicle.licensing_status,
+      insurance_status: insurance_status !== undefined ? insurance_status : existingVehicle.insurance_status,
+      ipva_status: ipva_status !== undefined ? ipva_status : existingVehicle.ipva_status
     });
     
     // Log de atividade: veículo atualizado

@@ -167,7 +167,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Nome */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-brand-navy mb-1">
+        <label htmlFor="name" className="block text-sm font-semibold text-brand-primary mb-1">
           Nome Completo *
         </label>
         <input
@@ -176,7 +176,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue ${
+          className={`w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-blue ${
             errors.name ? 'border-red-500' : 'border-gray-300'
           }`}
           placeholder="Digite o nome completo"
@@ -187,7 +187,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
       {/* Email e Telefone */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-brand-navy mb-1">
+          <label htmlFor="email" className="block text-sm font-semibold text-brand-primary mb-1">
             Email *
           </label>
           <input
@@ -196,7 +196,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue ${
+            className={`w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-blue ${
               errors.email ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="email@exemplo.com"
@@ -205,7 +205,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-brand-navy mb-1">
+          <label htmlFor="phone" className="block text-sm font-semibold text-brand-primary mb-1">
             Telefone *
           </label>
           <input
@@ -214,7 +214,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
             name="phone"
             value={formData.phone}
             onChange={handlePhoneChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue ${
+            className={`w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-blue ${
               errors.phone ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="(11) 99999-9999"
@@ -226,7 +226,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
 
       {/* CPF/CNPJ */}
       <div>
-        <label htmlFor="document" className="block text-sm font-medium text-brand-navy mb-1">
+        <label htmlFor="document" className="block text-sm font-semibold text-brand-primary mb-1">
           CPF/CNPJ *
         </label>
         <input
@@ -235,7 +235,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
           name="document"
           value={formData.document}
           onChange={handleDocumentChange}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue ${
+          className={`w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-blue ${
             errors.document ? 'border-red-500' : 'border-gray-300'
           }`}
           placeholder="000.000.000-00 ou 00.000.000/0000-00"
@@ -246,7 +246,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
 
       {/* Endereço */}
       <div>
-        <label htmlFor="address" className="block text-sm font-medium text-brand-navy mb-1">
+        <label htmlFor="address" className="block text-sm font-semibold text-brand-primary mb-1">
           Endereço *
         </label>
         <input
@@ -255,7 +255,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
           name="address"
           value={formData.address}
           onChange={handleChange}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue ${
+          className={`w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-blue ${
             errors.address ? 'border-red-500' : 'border-gray-300'
           }`}
           placeholder="Rua, número, complemento"
@@ -266,7 +266,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
       {/* Cidade, Estado e CEP */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label htmlFor="city" className="block text-sm font-medium text-brand-navy mb-1">
+          <label htmlFor="city" className="block text-sm font-semibold text-brand-primary mb-1">
             Cidade *
           </label>
           <input
@@ -275,7 +275,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
             name="city"
             value={formData.city}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue ${
+            className={`w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-blue ${
               errors.city ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="São Paulo"
@@ -284,7 +284,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
         </div>
 
         <div>
-          <label htmlFor="state" className="block text-sm font-medium text-brand-navy mb-1">
+          <label htmlFor="state" className="block text-sm font-semibold text-brand-primary mb-1">
             Estado *
           </label>
           <select
@@ -292,7 +292,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
             name="state"
             value={formData.state}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue ${
+            className={`select-light w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue bg-white text-gray-900 ${
               errors.state ? 'border-red-500' : 'border-gray-300'
             }`}
           >
@@ -329,7 +329,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
         </div>
 
         <div>
-          <label htmlFor="zipCode" className="block text-sm font-medium text-brand-navy mb-1">
+          <label htmlFor="zipCode" className="block text-sm font-semibold text-brand-primary mb-1">
             CEP
           </label>
           <input
@@ -338,7 +338,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
             name="zipCode"
             value={formData.zipCode}
             onChange={handleZipCodeChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-blue"
             placeholder="00000-000"
             maxLength="9"
           />
@@ -347,7 +347,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
 
       {/* Status */}
       <div>
-        <label htmlFor="status" className="block text-sm font-medium text-brand-navy mb-1">
+        <label htmlFor="status" className="block text-sm font-semibold text-brand-primary mb-1">
           Status
         </label>
         <select
@@ -355,7 +355,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
           name="status"
           value={formData.status}
           onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
+          className="select-light w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue bg-white text-gray-900"
         >
           <option value="active">Ativo</option>
           <option value="inactive">Inativo</option>
@@ -364,7 +364,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
 
       {/* Observações */}
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-brand-navy mb-1">
+        <label htmlFor="notes" className="block text-sm font-semibold text-brand-primary mb-1">
           Observações
         </label>
         <textarea
@@ -373,7 +373,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
           value={formData.notes}
           onChange={handleChange}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-blue"
           placeholder="Informações adicionais sobre o cliente..."
         />
       </div>
@@ -383,13 +383,13 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-brand-navy bg-brand-light rounded-md hover:bg-gray-300 transition-colors"
+          className="btn-primary"
         >
           Cancelar
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-brand-blue text-brand-white rounded-md hover:bg-brand-navy transition-colors"
+          className="btn-primary"
         >
           {client ? 'Atualizar' : 'Cadastrar'}
         </button>

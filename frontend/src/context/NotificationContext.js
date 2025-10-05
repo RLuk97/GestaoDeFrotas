@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { User, Car, Settings, AlertTriangle } from 'lucide-react';
 import { useApp } from './AppContext';
 
@@ -15,6 +15,30 @@ export const useNotifications = () => {
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const { state } = useApp();
+
+  // Hidratar do localStorage ao montar
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('notifications');
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (Array.isArray(saved)) {
+          setNotifications(saved);
+        }
+      }
+    } catch (e) {
+      console.warn('Falha ao carregar notificações do storage:', e);
+    }
+  }, []);
+
+  // Persistir no localStorage sempre que mudar
+  useEffect(() => {
+    try {
+      localStorage.setItem('notifications', JSON.stringify(notifications));
+    } catch (e) {
+      console.warn('Falha ao salvar notificações no storage:', e);
+    }
+  }, [notifications]);
 
   // Função para adicionar nova notificação
   const addNotification = useCallback((notification) => {

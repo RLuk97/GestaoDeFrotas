@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, X, CheckCircle } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
@@ -6,6 +6,13 @@ import { useNotifications } from '../context/NotificationContext';
 const Notifications = () => {
   const navigate = useNavigate();
   const { notifications, markAsRead, markAllAsRead, clearAllNotifications } = useNotifications();
+
+  // Ao abrir a página de notificações, marcar todas como lidas
+  useEffect(() => {
+    if (notifications?.some(n => n.unread)) {
+      markAllAsRead();
+    }
+  }, []);
 
   return (
     <div className="p-6 space-y-6">

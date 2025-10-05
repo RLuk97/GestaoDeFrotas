@@ -133,7 +133,7 @@ const ServiceDetails = () => {
       case 'in_progress':
         return '🔧 Em Andamento';
       case 'pending':
-        return '📋 Pendente';
+        return '📋 Em Análise';
       case 'cancelled':
         return '❌ Cancelado';
       default:
@@ -191,10 +191,10 @@ const ServiceDetails = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl font-bold text-brand-primary">
                   {service.type}
                 </h2>
-                <p className="text-gray-600 mt-1">
+                <p className="text-brand-muted mt-1">
                   {service.type} - {vehicle?.plate}
                 </p>
               </div>
@@ -222,9 +222,9 @@ const ServiceDetails = () => {
           {/* Informações Principais */}
           <div className="lg:col-span-2 space-y-6">
             {/* Informações do Serviço */}
-            <div className="card">
+            <div className="card card-light">
               <div className="card-header">
-                <h2 className="card-title flex items-center">
+                <h2 className="card-title flex items-center text-brand-primary">
                   <Wrench className="h-5 w-5 mr-2" />
                   Informações do Serviço
                 </h2>
@@ -316,9 +316,9 @@ const ServiceDetails = () => {
 
             {/* Peças Utilizadas */}
             {service.parts && service.parts.length > 0 && (
-              <div className="card">
+              <div className="card card-light">
                 <div className="card-header">
-                  <h2 className="card-title flex items-center">
+                  <h2 className="card-title flex items-center text-brand-primary">
                     <Package className="h-5 w-5 mr-2" />
                     Peças Utilizadas
                   </h2>
@@ -381,9 +381,9 @@ const ServiceDetails = () => {
           <div className="space-y-6">
             {/* Informações do Veículo */}
             {vehicle && (
-              <div className="card">
+              <div className="card card-light">
                 <div className="card-header">
-                  <h2 className="card-title flex items-center">
+                  <h2 className="card-title flex items-center text-brand-primary">
                     <Car className="h-5 w-5 mr-2" />
                     Veículo
                   </h2>
@@ -430,9 +430,9 @@ const ServiceDetails = () => {
             )}
 
             {/* Resumo Financeiro */}
-            <div className="card">
+            <div className="card card-light">
               <div className="card-header">
-                <h2 className="card-title flex items-center">
+                <h2 className="card-title flex items-center text-brand-primary">
                   <DollarSign className="h-5 w-5 mr-2" />
                   Resumo Financeiro
                 </h2>
@@ -441,11 +441,11 @@ const ServiceDetails = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-brand-muted">Peças:</span>
-                    <span className="font-medium">R$ {partsTotal.toFixed(2)}</span>
+                    <span className="font-medium text-brand-primary">R$ {partsTotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-brand-muted">Mão de obra:</span>
-                    <span className="font-medium">R$ {laborCost.toFixed(2)}</span>
+                    <span className="font-medium text-brand-primary">R$ {laborCost.toFixed(2)}</span>
                   </div>
                   <div className="border-t border-brand-border pt-3">
                     <div className="flex justify-between">

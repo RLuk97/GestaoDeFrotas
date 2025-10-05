@@ -157,7 +157,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
         exit_date: formData.exitDate || null,
         mileage: formData.mileage ? parseInt(formData.mileage) : null,
         status: formData.paymentStatus === 'paid' ? 'Concluído' : 
-                formData.paymentStatus === 'partial' ? 'Em Andamento' : 'Pendente',
+      formData.paymentStatus === 'partial' ? 'Em Andamento' : 'Em Análise',
         mechanic: null,
         parts_used: null,
         labor_hours: 0
@@ -213,7 +213,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
             name="vehicleId"
             value={formData.vehicleId}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+            className={`select-light w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 ${
               errors.vehicleId ? 'border-red-500' : 'border-gray-300'
             }`}
             required
@@ -309,7 +309,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
               value={formData.customType}
               onChange={handleChange}
               placeholder="Digite o tipo de serviço personalizado..."
-              className={`input-field ${errors.customType ? 'border-red-500 focus:ring-red-500' : ''}`}
+              className={`input-field input-light ${errors.customType ? 'border-red-500 focus:ring-red-500' : ''}`}
             />
             {errors.customType && (
               <p className="mt-1 text-sm text-red-600">{errors.customType}</p>
@@ -328,7 +328,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
             name="entryDate"
             value={formData.entryDate}
             onChange={handleChange}
-            className={`input-field ${errors.entryDate ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field input-light ${errors.entryDate ? 'border-red-500 focus:ring-red-500' : ''}`}
           />
           {errors.entryDate && (
             <p className="mt-1 text-sm text-red-600">{errors.entryDate}</p>
@@ -346,7 +346,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
             name="exitDate"
             value={formData.exitDate}
             onChange={handleChange}
-            className={`input-field ${errors.exitDate ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field input-light ${errors.exitDate ? 'border-red-500 focus:ring-red-500' : ''}`}
           />
           {errors.exitDate && (
             <p className="mt-1 text-sm text-red-600">{errors.exitDate}</p>
@@ -366,7 +366,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
             onChange={handleChange}
             placeholder="45000"
             min="0"
-            className={`input-field ${errors.mileage ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field input-light ${errors.mileage ? 'border-red-500 focus:ring-red-500' : ''}`}
           />
           {errors.mileage && (
             <p className="mt-1 text-sm text-red-600">{errors.mileage}</p>
@@ -383,9 +383,9 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
             name="paymentStatus"
             value={formData.paymentStatus}
             onChange={handleChange}
-            className="input-field"
+            className="input-field select-light bg-white text-gray-900"
           >
-            <option value="pending">📋 Pendente</option>
+          <option value="pending">📋 Em Análise</option>
             <option value="in_progress">🔧 Em Andamento</option>
             <option value="completed">✅ Concluído</option>
             <option value="cancelled">❌ Cancelado</option>
@@ -405,7 +405,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
           onChange={handleChange}
           rows={3}
           placeholder="Descreva detalhadamente o serviço realizado..."
-          className={`input-field resize-none ${errors.description ? 'border-red-500 focus:ring-red-500' : ''}`}
+          className={`input-field input-light resize-none ${errors.description ? 'border-red-500 focus:ring-red-500' : ''}`}
         />
         {errors.description && (
           <p className="mt-1 text-sm text-red-600">{errors.description}</p>
@@ -426,7 +426,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
           placeholder="350.00"
           min="0"
           step="0.01"
-          className={`input-field ${errors.totalValue ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field input-light ${errors.totalValue ? 'border-red-500 focus:ring-red-500' : ''}`}
         />
         {errors.totalValue && (
           <p className="mt-1 text-sm text-red-600">{errors.totalValue}</p>

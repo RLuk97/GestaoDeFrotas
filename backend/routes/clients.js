@@ -31,10 +31,10 @@ const clientValidation = [
     .isMobilePhone('pt-BR')
     .withMessage('Telefone deve ser válido'),
   body('document')
-    .optional()
+    .notEmpty()
+    .withMessage('CPF/CNPJ é obrigatório')
     .custom((value) => {
       const digits = String(value).replace(/\D/g, '');
-      if (digits.length === 0) return true; // permitido vazio (opcional)
       if (digits.length !== 11 && digits.length !== 14) {
         throw new Error('Documento deve conter CPF (11 dígitos) ou CNPJ (14 dígitos)');
       }
@@ -94,11 +94,31 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/clients/:id - Buscar cliente por ID
+// Utilitário: normalizar CPF/CNPJ para apenas dígitos
+const normalizeDocument = (value) => (value || '').toString().replace(/\D/g, '');
+
+// Utilitário: checar se string parece UUID v4
+const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || '');
+
+// Resolver cliente por UUID ou CPF/CNPJ
+const resolveClient = async (idOrDoc) => {
+  const raw = (idOrDoc || '').toString().trim();
+  const digits = normalizeDocument(raw);
+  if (isUuid(raw)) {
+    return await Client.findById(raw);
+  }
+  if (digits.length === 11 || digits.length === 14) {
+    return await Client.findByDocument(digits);
+  }
+  // fallback: tentar como ID padrão
+  return await Client.findById(raw);
+};
+
+// GET /api/clients/:id - Buscar cliente por ID (UUID) ou CPF/CNPJ
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const client = await Client.findById(id);
+    const client = await resolveClient(id);
     
     if (!client) {
       return res.status(404).json({
@@ -123,6 +143,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', clientValidation, handleValidationErrors, async (req, res) => {
   try {
     const { name, email, phone, document, address, city, state, zipCode, status, notes } = req.body;
+    const normalizedDoc = normalizeDocument(document);
     
     // Verificar se email já existe
     const existingClient = await Client.findByEmail(email);
@@ -133,22 +154,26 @@ router.post('/', clientValidation, handleValidationErrors, async (req, res) => {
       });
     }
     
-    // Verificar se CPF/CNPJ já existe (apenas se foi fornecido)
-    if (document && document.trim()) {
-      const existingDocument = await Client.findByDocument(document.trim());
-      if (existingDocument) {
-        return res.status(409).json({
-          error: 'CPF/CNPJ já cadastrado',
-          message: 'Já existe um cliente com este CPF/CNPJ'
-        });
-      }
+    // Verificar se CPF/CNPJ já existe (documento obrigatório)
+    if (!normalizedDoc || (normalizedDoc.length !== 11 && normalizedDoc.length !== 14)) {
+      return res.status(400).json({
+        error: 'Dados inválidos',
+        message: 'CPF/CNPJ é obrigatório e deve conter 11 ou 14 dígitos'
+      });
+    }
+    const existingDocument = await Client.findByDocument(normalizedDoc);
+    if (existingDocument) {
+      return res.status(409).json({
+        error: 'CPF/CNPJ já cadastrado',
+        message: 'Já existe um cliente com este CPF/CNPJ'
+      });
     }
     
     const client = await Client.create({
       name,
       email,
       phone,
-      document,
+      document: normalizedDoc,
       address,
       city,
       state,
@@ -191,9 +216,10 @@ router.put('/:id', clientValidation, handleValidationErrors, async (req, res) =>
   try {
     const { id } = req.params;
     const { name, email, phone, document, address, city, state, zipCode, status, notes } = req.body;
+    const normalizedDoc = document ? normalizeDocument(document) : '';
     
     // Verificar se cliente existe
-    const existingClient = await Client.findById(id);
+    const existingClient = await resolveClient(id);
     if (!existingClient) {
       return res.status(404).json({
         error: 'Cliente não encontrado'
@@ -202,7 +228,7 @@ router.put('/:id', clientValidation, handleValidationErrors, async (req, res) =>
     
     // Verificar se email já existe em outro cliente
     const emailClient = await Client.findByEmail(email);
-    if (emailClient && emailClient.id !== id) {
+    if (emailClient && emailClient.id !== existingClient.id) {
       return res.status(409).json({
         error: 'Email já cadastrado',
         message: 'Já existe outro cliente com este email'
@@ -210,9 +236,15 @@ router.put('/:id', clientValidation, handleValidationErrors, async (req, res) =>
     }
     
     // Verificar se CPF/CNPJ já existe em outro cliente (apenas se foi fornecido)
-    if (document && document.trim()) {
-      const documentClient = await Client.findByDocument(document);
-      if (documentClient && documentClient.id !== id) {
+    if (normalizedDoc) {
+      if (normalizedDoc.length !== 11 && normalizedDoc.length !== 14) {
+        return res.status(400).json({
+          error: 'Dados inválidos',
+          message: 'CPF/CNPJ deve conter 11 ou 14 dígitos'
+        });
+      }
+      const documentClient = await Client.findByDocument(normalizedDoc);
+      if (documentClient && documentClient.id !== existingClient.id) {
         return res.status(409).json({
           error: 'CPF/CNPJ já cadastrado',
           message: 'Já existe outro cliente com este CPF/CNPJ'
@@ -220,11 +252,11 @@ router.put('/:id', clientValidation, handleValidationErrors, async (req, res) =>
       }
     }
     
-    const client = await Client.update(id, {
+    const client = await Client.update(existingClient.id, {
       name,
       email,
       phone,
-      document,
+      document: normalizedDoc || existingClient.document,
       address,
       city,
       state,
@@ -267,15 +299,15 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Verificar se cliente existe
-    const existingClient = await Client.findById(id);
+    // Verificar se cliente existe (UUID ou CPF/CNPJ)
+    const existingClient = await resolveClient(id);
     if (!existingClient) {
       return res.status(404).json({
         error: 'Cliente não encontrado'
       });
     }
     
-    const deleted = await Client.delete(id);
+    const deleted = await Client.delete(existingClient.id);
     
     if (deleted) {
       // Registrar atividade: cliente excluído

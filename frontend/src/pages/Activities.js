@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, Activity as ActivityIcon, DollarSign, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import apiService from '../services/api';
+import { useSettings } from '../context/SettingsContext';
 
 const formatCurrency = (value) => {
   try {
@@ -34,7 +35,7 @@ const getStatusText = (status) => {
     case 'in_progress':
       return 'Em andamento';
     case 'pending':
-      return 'Pendente';
+      return 'Em Análise';
     case 'deleted':
       return 'Excluído';
     case 'cancelled':
@@ -57,13 +58,15 @@ const Activities = () => {
   const [loading, setLoading] = useState(true);
   const [activities, setActivities] = useState([]);
   const [error, setError] = useState(null);
+  const { settings } = useSettings();
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
         setLoading(true);
-        // Por enquanto, usamos "recent" com um limite maior
-        const data = await apiService.getRecentActivities(50);
+        // Usar limite configurável para a página de atividades
+        const limit = Number(settings?.activitiesPageLimit) || 50;
+        const data = await apiService.getRecentActivities(limit);
         setActivities(Array.isArray(data) ? data : (data?.data || []));
         setError(null);
       } catch (e) {

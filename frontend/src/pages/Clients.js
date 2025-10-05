@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNotifications } from '../context/NotificationContext';
-import { Edit, Trash2, Eye, Search, Users, Plus, User, Car, Wrench, ArrowLeft, UserCheck, UserX, History } from 'lucide-react';
+import { Edit, Trash2, Eye, Search, Users, Plus, User, Car, UserCheck, UserX } from 'lucide-react';
 import ClientForm from '../components/Common/ClientForm';
 import Modal from '../components/Common/Modal';
 import ApiService from '../services/api';
@@ -15,6 +14,8 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showView, setShowView] = useState(false);
+  const [viewingClient, setViewingClient] = useState(null);
   const itemsPerPage = 5;
 
   const clients = state.clients;
@@ -96,21 +97,14 @@ const Clients = () => {
     }
   };
 
-  const handleEdit = (client) => {
-    setEditingClient(client);
-    setShowForm(true);
+  const openViewClient = (client) => {
+    setViewingClient(client);
+    setShowView(true);
   };
 
-  const handleView = (client) => {
-    // Por enquanto, apenas mostra um alert com os detalhes do cliente
-    // Futuramente pode ser implementado um modal de visualização ou navegação para página de detalhes
-    alert(`Detalhes do Cliente:\n\nNome: ${client.name}\nEmail: ${client.email}\nTelefone: ${client.phone}\nStatus: ${client.status === 'active' ? 'Ativo' : 'Inativo'}`);
-  };
-
-  const handleDelete = (clientId) => {
-    if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
-      dispatch({ type: 'DELETE_CLIENT', payload: clientId });
-    }
+  const closeViewClient = () => {
+    setShowView(false);
+    setViewingClient(null);
   };
 
   const handleCancel = () => {
@@ -155,6 +149,29 @@ const Clients = () => {
 
   const getClientVehicles = (clientId) => {
     return state.vehicles.filter(vehicle => vehicle.client_id === clientId);
+  };
+
+  // Formatar CPF/CNPJ para exibição
+  const formatDocumentDisplay = (value) => {
+    const digits = String(value || '').replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length <= 11) {
+      return digits.replace(/(\d{3})(\d{0,3})(\d{0,3})(\d{0,2})/, (m, a, b, c, d) => {
+        let out = a;
+        if (b) out += '.' + b;
+        if (c) out += '.' + c;
+        if (d) out += '-' + d;
+        return out;
+      });
+    }
+    return digits.replace(/(\d{2})(\d{0,3})(\d{0,3})(\d{0,4})(\d{0,2})/, (m, a, b, c, d, e) => {
+      let out = a;
+      if (b) out += '.' + b;
+      if (c) out += '.' + c;
+      if (d) out += '/' + d;
+      if (e) out += '-' + e;
+      return out;
+    });
   };
 
   const paginatedClients = currentClients;
@@ -234,7 +251,7 @@ const Clients = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="min-w-[140px] px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="select-light min-w-[140px] px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             >
               <option value="all">Todos Status</option>
               <option value="active">Ativos</option>
@@ -256,6 +273,95 @@ const Clients = () => {
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />
+      </Modal>
+
+      {/* Modal de Visualização do Cliente */}
+      <Modal
+        isOpen={showView}
+        onClose={closeViewClient}
+        title={viewingClient ? `Cliente: ${viewingClient.name}` : 'Cliente'}
+        size="lg"
+      >
+        {viewingClient && (
+          <div className="space-y-6">
+            <div className="card card-light">
+              <div className="card-header">
+                <h2 className="card-title text-brand-primary">Dados do Cliente</h2>
+              </div>
+              <div className="card-content">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-brand-muted dark:text-gray-600">Nome</p>
+                    <p className="font-medium text-brand-primary dark:text-gray-900">{viewingClient.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-brand-muted dark:text-gray-600">CPF/CNPJ</p>
+                    <p className="font-medium text-brand-primary dark:text-gray-900">{formatDocumentDisplay(viewingClient.document)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-brand-muted dark:text-gray-600">Email</p>
+                    <p className="font-medium text-brand-primary dark:text-gray-900">{viewingClient.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-brand-muted dark:text-gray-600">Telefone</p>
+                    <p className="font-medium text-brand-primary dark:text-gray-900">{viewingClient.phone}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-brand-muted dark:text-gray-600">Endereço</p>
+                    <p className="font-medium text-brand-primary dark:text-gray-900">{viewingClient.address}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-brand-muted dark:text-gray-600">Cidade</p>
+                    <p className="font-medium text-brand-primary dark:text-gray-900">{viewingClient.city}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-brand-muted dark:text-gray-600">Estado</p>
+                    <p className="font-medium text-brand-primary dark:text-gray-900">{viewingClient.state}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-brand-muted dark:text-gray-600">CEP</p>
+                    <p className="font-medium text-brand-primary dark:text-gray-900">{viewingClient.zipCode}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-brand-muted dark:text-gray-600">Status</p>
+                    <p className="font-medium text-brand-primary dark:text-gray-900">{viewingClient.status === 'active' ? 'Ativo' : 'Inativo'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card card-light">
+              <div className="card-header">
+                <h2 className="card-title flex items-center text-brand-primary">
+                  <Car className="h-5 w-5 mr-2" />
+                  Veículo(s) do Cliente
+                </h2>
+              </div>
+              <div className="card-content">
+                {getClientVehicles(viewingClient.id).length === 0 ? (
+                  <p className="text-gray-600 dark:text-gray-700">Nenhum veículo cadastrado para este cliente.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {getClientVehicles(viewingClient.id).map((v) => (
+                      <div key={v.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl bg-gray-50 dark:bg-white dark:border-brand-border">
+                        <div className="flex items-center">
+                          <div className="p-2 rounded-lg bg-white border border-gray-200 mr-3 dark:bg-white dark:border-brand-border">
+                            <Car className="h-4 w-4 text-gray-700 dark:text-gray-700" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-900">{v.brand} {v.model} {v.year}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-700">Placa: {v.license_plate}</p>
+                          </div>
+                        </div>
+                        <span className="px-2 py-1 text-xs rounded-full bg-white border border-gray-200 text-gray-700 dark:bg-white dark:border-brand-border dark:text-gray-700">{v.color || '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* Lista de Clientes */}
@@ -348,18 +454,12 @@ const Clients = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                         <div className="flex justify-center space-x-2">
-                          <Link
-                            to={`/clients/${client.id}/history`}
-                            className="hidden"
-                            aria-hidden="true"
-                          />
                           <button
-                            type="button"
-                            className="p-2 text-gray-400 bg-gray-50 rounded-lg cursor-not-allowed"
-                            title="Em desenvolvimento"
-                            aria-disabled="true"
+                            onClick={() => openViewClient(client)}
+                            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Ver detalhes"
                           >
-                            <History className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleEditClient(client)}

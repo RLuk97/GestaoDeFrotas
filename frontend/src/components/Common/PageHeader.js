@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Search, User, Settings, X, AlertTriangle, Wrench, DollarSign, FileText, Clock } from 'lucide-react';
+import { Bell, Search, User, X, AlertTriangle, Wrench, DollarSign, FileText, Clock } from 'lucide-react';
 import { useNotifications } from '../../context/NotificationContext';
 
 const PageHeader = ({ title, subtitle, showSearch = false, showNotifications = true, showUserMenu = true }) => {
@@ -144,12 +144,9 @@ const PageHeader = ({ title, subtitle, showSearch = false, showNotifications = t
               </div>
             )}
 
-            {/* Menu do usuário */}
+            {/* Menu do usuário (sem engrenagem) */}
             {showUserMenu && (
               <div className="flex items-center space-x-3">
-                <button className="p-2 text-primary-100 hover:text-white hover:bg-primary-700 rounded-full transition-colors">
-                  <Settings className="h-5 w-5" />
-                </button>
                 <div className="flex items-center space-x-2">
                   <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center">
                     <User className="h-4 w-4 text-white" />

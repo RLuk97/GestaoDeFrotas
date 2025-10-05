@@ -11,6 +11,10 @@ class Vehicle {
     this.color = data.color;
     this.fuel_type = data.fuel_type;
     this.mileage = data.mileage;
+    this.renavam = data.renavam;
+    this.licensing_status = data.licensing_status;
+    this.insurance_status = data.insurance_status;
+    this.ipva_status = data.ipva_status;
     this.status = data.status || 'active';
     this.created_at = data.created_at;
     this.updated_at = data.updated_at;
@@ -58,24 +62,25 @@ class Vehicle {
 
   // Criar novo veículo
   static async create(vehicleData) {
-    const { client_id, brand, model, year, license_plate, color, fuel_type, mileage, status } = vehicleData;
+    const { client_id, brand, model, year, license_plate, color, fuel_type, mileage, status, renavam, licensing_status, insurance_status, ipva_status } = vehicleData;
     const result = await query(
-      `INSERT INTO vehicles (client_id, brand, model, year, license_plate, color, fuel_type, mileage, status) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [client_id, brand, model, year, license_plate, color, fuel_type || 'Gasolina', mileage || 0, status || 'active']
+      `INSERT INTO vehicles (client_id, brand, model, year, license_plate, color, fuel_type, mileage, status, renavam, licensing_status, insurance_status, ipva_status) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      [client_id, brand, model, year, license_plate, color, fuel_type || 'Gasolina', mileage || 0, status || 'active', renavam || null, licensing_status || null, insurance_status || null, ipva_status || null]
     );
     return new Vehicle(result.rows[0]);
   }
 
   // Atualizar veículo
   static async update(id, vehicleData) {
-    const { client_id, brand, model, year, license_plate, color, fuel_type, mileage, status } = vehicleData;
+    const { client_id, brand, model, year, license_plate, color, fuel_type, mileage, status, renavam, licensing_status, insurance_status, ipva_status } = vehicleData;
     const result = await query(
       `UPDATE vehicles 
        SET client_id = $1, brand = $2, model = $3, year = $4, license_plate = $5, 
-           color = $6, fuel_type = $7, mileage = $8, status = $9
-       WHERE id = $10 RETURNING *`,
-      [client_id, brand, model, year, license_plate, color, fuel_type, mileage, status, id]
+           color = $6, fuel_type = $7, mileage = $8, status = $9,
+           renavam = $10, licensing_status = $11, insurance_status = $12, ipva_status = $13
+       WHERE id = $14 RETURNING *`,
+      [client_id, brand, model, year, license_plate, color, fuel_type, mileage, status, renavam || null, licensing_status || null, insurance_status || null, ipva_status || null, id]
     );
     return result.rows.length > 0 ? new Vehicle(result.rows[0]) : null;
   }

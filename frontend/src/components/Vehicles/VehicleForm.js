@@ -135,10 +135,12 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
 
     // Cliente é opcional no cadastro de veículo
 
-    // Removendo validações de campos que não existem no backend
-    // if (!formData.renavam.trim()) {
-    //   newErrors.renavam = 'RENAVAM é obrigatório';
-    // }
+    // RENAVAM obrigatório: exatamente 11 dígitos numéricos
+    if (!formData.renavam || !formData.renavam.trim()) {
+      newErrors.renavam = 'RENAVAM é obrigatório';
+    } else if (!/^\d{11}$/.test(formData.renavam)) {
+      newErrors.renavam = 'RENAVAM deve ter exatamente 11 números';
+    }
 
     // if (!formData.licensing_status.trim()) {
     //   newErrors.licensing_status = 'Status do licenciamento é obrigatório';
@@ -215,7 +217,12 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
         setShowCustomModel(false);
         setFormData(prev => ({ ...prev, [name]: value, customModel: '' }));
       }
-    } else {
+    } else if (name === 'renavam') {
+      // Permitir apenas dígitos e limitar a 11 caracteres
+      const digitsOnly = value.replace(/\D/g, '').slice(0, 11);
+      setFormData(prev => ({ ...prev, [name]: digitsOnly }));
+    }
+    else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
     
@@ -263,7 +270,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             onChange={handlePlateChange}
             placeholder="XYZ5678"
             maxLength={7}
-            className={`input-field ${errors.license_plate ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field input-light ${errors.license_plate ? 'border-red-500 focus:ring-red-500' : ''}`}
           />
           {errors.license_plate && (
             <p className="mt-1 text-sm text-red-600">{errors.license_plate}</p>
@@ -280,7 +287,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             name="client_id"
             value={formData.client_id}
             onChange={handleChange}
-            className={`input-field ${errors.client_id ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field select-light bg-white text-gray-900 ${errors.client_id ? 'border-red-500 focus:ring-red-500' : ''}`}
           >
             <option value="">Nenhum cliente (veículo da frota)</option>
             {state.clients.map(client => (
@@ -304,7 +311,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             name="brand"
             value={formData.brand}
             onChange={handleBrandChange}
-            className={`input-field ${errors.brand ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field select-light bg-white text-gray-900 ${errors.brand ? 'border-red-500 focus:ring-red-500' : ''}`}
           >
             <option value="">Selecione uma marca</option>
             {Object.keys(vehicleBrands).sort().map(brand => (
@@ -329,7 +336,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             value={formData.model}
             onChange={handleChange}
             disabled={!formData.brand || availableModels.length === 0}
-            className={`input-field ${errors.model ? 'border-red-500 focus:ring-red-500' : ''} ${!formData.brand ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            className={`input-field select-light bg-white text-gray-900 ${errors.model ? 'border-red-500 focus:ring-red-500' : ''} ${!formData.brand ? 'bg-gray-100 cursor-not-allowed' : ''}`}
           >
             <option value="">
               {!formData.brand ? 'Selecione uma marca primeiro' : 'Selecione um modelo'}
@@ -358,7 +365,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
               value={formData.customModel}
               onChange={handleChange}
               placeholder="Digite o modelo do veículo"
-              className={`input-field ${errors.customModel ? 'border-red-500 focus:ring-red-500' : ''}`}
+              className={`input-field input-light ${errors.customModel ? 'border-red-500 focus:ring-red-500' : ''}`}
             />
             {errors.customModel && (
               <p className="mt-1 text-sm text-red-600">{errors.customModel}</p>
@@ -380,7 +387,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             placeholder="2020"
             min="1900"
             max={new Date().getFullYear() + 1}
-            className={`input-field ${errors.year ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field input-light ${errors.year ? 'border-red-500 focus:ring-red-500' : ''}`}
           />
           {errors.year && (
             <p className="mt-1 text-sm text-red-600">{errors.year}</p>
@@ -400,7 +407,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             onChange={handleChange}
             placeholder="55000"
             min="0"
-            className={`input-field ${errors.mileage ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field input-light ${errors.mileage ? 'border-red-500 focus:ring-red-500' : ''}`}
           />
           {errors.mileage && (
             <p className="mt-1 text-sm text-red-600">{errors.mileage}</p>
@@ -419,7 +426,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             value={formData.color}
             onChange={handleChange}
             placeholder="Branco"
-            className="input-field"
+            className="input-field input-light"
           />
         </div>
 
@@ -433,7 +440,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             name="fuel_type"
             value={formData.fuel_type}
             onChange={handleChange}
-            className="input-field"
+            className="input-field select-light bg-white text-gray-900"
           >
             <option value="Gasolina">Gasolina</option>
             <option value="Etanol">Etanol</option>
@@ -445,10 +452,10 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
           </select>
         </div>
 
-        {/* RENAVAM - Campo opcional */}
+        {/* RENAVAM - Obrigatório */}
         <div>
           <label htmlFor="renavam" className="block text-sm font-medium text-gray-700 mb-2">
-            RENAVAM
+            RENAVAM *
           </label>
           <input
             type="text"
@@ -457,7 +464,11 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             value={formData.renavam}
             onChange={handleChange}
             placeholder="12345678901"
-            className={`input-field ${errors.renavam ? 'border-red-500 focus:ring-red-500' : ''}`}
+            inputMode="numeric"
+            maxLength={11}
+            pattern="\d{11}"
+            required
+            className={`input-field input-light ${errors.renavam ? 'border-red-500 focus:ring-red-500' : ''}`}
           />
           {errors.renavam && (
             <p className="mt-1 text-sm text-red-600">{errors.renavam}</p>
@@ -474,7 +485,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             name="licensing_status"
             value={formData.licensing_status}
             onChange={handleChange}
-            className={`input-field ${errors.licensing_status ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field select-light bg-white text-gray-900 ${errors.licensing_status ? 'border-red-500 focus:ring-red-500' : ''}`}
           >
             <option value="">Selecione o status</option>
             <option value="Em dia">Em dia</option>
@@ -496,7 +507,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             name="insurance_status"
             value={formData.insurance_status}
             onChange={handleChange}
-            className={`input-field ${errors.insurance_status ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field select-light bg-white text-gray-900 ${errors.insurance_status ? 'border-red-500 focus:ring-red-500' : ''}`}
           >
             <option value="">Selecione o status</option>
             <option value="Ativo">Ativo</option>
@@ -519,7 +530,7 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             name="ipva_status"
             value={formData.ipva_status}
             onChange={handleChange}
-            className={`input-field ${errors.ipva_status ? 'border-red-500 focus:ring-red-500' : ''}`}
+            className={`input-field select-light bg-white text-gray-900 ${errors.ipva_status ? 'border-red-500 focus:ring-red-500' : ''}`}
           >
             <option value="">Selecione o status</option>
             <option value="Pago">Pago</option>

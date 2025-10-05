@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppWithNotifications } from './context/AppWithNotifications';
+import { SettingsProvider } from './context/SettingsContext';
 import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Dashboard';
 import Vehicles from './pages/Vehicles';
@@ -14,10 +15,11 @@ import Notifications from './pages/Notifications';
 
 function App() {
   return (
-    <AppWithNotifications>
-      <Router>
-        <div className="App">
-          <Routes>
+    <SettingsProvider>
+      <AppWithNotifications>
+        <Router>
+          <div className="App">
+            <Routes>
             <Route path="/" element={<Layout><Dashboard /></Layout>} />
             <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
             <Route path="/activities" element={<Layout><Activities /></Layout>} />
@@ -28,10 +30,11 @@ function App() {
             <Route path="/services/:id" element={<Layout><ServiceDetails /></Layout>} />
             <Route path="/clients" element={<Layout><Clients /></Layout>} />
             <Route path="/clients/:id/history" element={<Layout><ClientHistory /></Layout>} />
-          </Routes>
-        </div>
-      </Router>
-    </AppWithNotifications>
+            </Routes>
+          </div>
+        </Router>
+      </AppWithNotifications>
+    </SettingsProvider>
   );
 }
 

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -18,6 +20,7 @@ import {
 import ServiceForm from '../components/Services/ServiceForm';
 import Modal from '../components/Common/Modal';
 import ApiService from '../services/api';
+import { useSettings } from '../context/SettingsContext';
 
 const Services = () => {
   const { state, dispatch, getVehicleById, refreshVehicles } = useApp();
@@ -34,10 +37,12 @@ const Services = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [vehicleFilter, setVehicleFilter] = useState(searchParams.get('vehicle') || 'all');
+  const [monthFilter, setMonthFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const { settings } = useSettings();
+  const itemsPerPage = Number(settings?.itemsPerPage) || 5;
 
   // Detectar parâmetro openModal na URL
   useEffect(() => {
@@ -61,6 +66,24 @@ const Services = () => {
   }, [location.search]);
 
   // Filtrar e ordenar serviços
+  // Construir lista de meses disponíveis com base nas datas dos serviços
+  const monthOptions = (() => {
+    const toKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const toLabel = (date) => {
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      return `${months[date.getMonth()]}/${date.getFullYear()}`;
+    };
+    const keys = new Map();
+    (state.services || []).forEach((s) => {
+      const d = new Date(s.entryDate);
+      if (!isNaN(d)) {
+        const k = toKey(d);
+        if (!keys.has(k)) keys.set(k, toLabel(d));
+      }
+    });
+    return Array.from(keys.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+  })();
+
   const filteredServices = state.services
     .filter(service => {
       const vehicle = getVehicleById(service.vehicleId);
@@ -81,8 +104,15 @@ const Services = () => {
       
       const matchesStatus = statusFilter === 'all' || service.paymentStatus === statusFilter;
       const matchesVehicle = vehicleFilter === 'all' || service.vehicleId === parseInt(vehicleFilter);
+      const matchesMonth = (() => {
+        if (monthFilter === 'all') return true;
+        const d = new Date(service.entryDate);
+        if (isNaN(d)) return false;
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        return key === monthFilter;
+      })();
       
-      return matchesSearch && matchesStatus && matchesVehicle;
+      return matchesSearch && matchesStatus && matchesVehicle && matchesMonth;
     })
     .sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate)); // Ordenar por data mais recente
 
@@ -95,7 +125,7 @@ const Services = () => {
   // Reset página quando filtros mudam
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, vehicleFilter]);
+  }, [searchTerm, statusFilter, vehicleFilter, monthFilter]);
 
   // Fallback local para garantir que o card do veículo atualize imediatamente
   const syncVehicleStatusLocally = (vehicleId, updatedService) => {
@@ -300,6 +330,65 @@ const Services = () => {
     completedRevenue: filteredServices.filter(s => s.paymentStatus === 'completed').reduce((sum, s) => sum + (parseFloat(s.totalValue) || 0), 0)
   };
 
+  // Resumo de despesas do mês selecionado
+  const selectedMonthLabel = monthFilter === 'all'
+    ? null
+    : (monthOptions.find(([v]) => v === monthFilter)?.[1] || monthFilter);
+
+  const monthlyExpense = stats.totalRevenue;
+
+  const formatCurrency = (value) => (value || 0).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  const statusLabelPt = (st) => ({
+    pending: 'Em Análise',
+    in_progress: 'Em Andamento',
+    completed: 'Concluído',
+    cancelled: 'Cancelado'
+  }[st] || st);
+
+  const generateMonthlyReportPDF = () => {
+    try {
+      if (monthFilter === 'all' || filteredServices.length === 0) return;
+
+      const doc = new jsPDF();
+      const title = `Relatório de Despesas - ${selectedMonthLabel}`;
+      doc.setFontSize(16);
+      doc.text(title, 14, 18);
+
+      doc.setFontSize(11);
+      doc.text(`Total de serviços: ${stats.total}`, 14, 26);
+      doc.text(`Despesa total: R$ ${formatCurrency(monthlyExpense)}`, 14, 32);
+      doc.text(`Concluídos: ${stats.completed} • Em andamento: ${stats.in_progress} • Em análise: ${stats.pending} • Cancelados: ${stats.cancelled}`, 14, 38);
+
+      const rows = filteredServices.map((s) => {
+        const vehicle = getVehicleById(s.vehicleId);
+        const vehiclePlate = s.vehiclePlate || s.vehicle_license_plate || vehicle?.plate || '';
+        const typeText = Array.isArray(s.type) ? s.type.join(', ') : (s.type || '');
+        const entry = s.entryDate ? s.entryDate.split('-').reverse().join('/') : '';
+        const exit = s.exitDate ? s.exitDate.split('-').reverse().join('/') : '';
+        const statusText = statusLabelPt(s.paymentStatus);
+        const valueText = `R$ ${formatCurrency(parseFloat(s.totalValue) || 0)}`;
+        return [vehiclePlate, typeText, entry, exit, statusText, valueText];
+      });
+
+      autoTable(doc, {
+        startY: 44,
+        head: [['Veículo', 'Serviço', 'Entrada', 'Saída', 'Status', 'Valor']],
+        body: rows,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [33, 150, 243] }
+      });
+
+      doc.save(`relatorio-despesas-${monthFilter}.pdf`);
+    } catch (e) {
+      console.warn('Falha ao gerar PDF:', e);
+      alert('Não foi possível gerar o PDF. Verifique os dados e tente novamente.');
+    }
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -325,8 +414,8 @@ const Services = () => {
               <Wrench className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-0.5">Total de Serviços</p>
-              <p className="text-xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-sm text-gray-600 mb-0.5">Em Andamento</p>
+              <p className="text-xl font-bold text-gray-900">{stats.in_progress}</p>
             </div>
           </div>
         </div>
@@ -354,12 +443,12 @@ const Services = () => {
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all duration-200">
           <div className="flex items-center">
-            <div className="p-2.5 rounded-lg bg-gradient-to-r from-green-500 to-green-600 mr-3">
-              <DollarSign className="h-5 w-5 text-white" />
+            <div className="p-2.5 rounded-lg bg-gradient-to-r from-red-500 to-red-600 mr-3">
+              <AlertTriangle className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-0.5">Despesa Total</p>
-              <p className="text-xl font-bold text-gray-900">R$ {stats.totalRevenue.toFixed(2)}</p>
+              <p className="text-sm text-gray-600 mb-0.5">Cancelados</p>
+              <p className="text-xl font-bold text-gray-900">{stats.cancelled}</p>
             </div>
           </div>
         </div>
@@ -384,17 +473,54 @@ const Services = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="min-w-[140px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+              className="select-light min-w-[140px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white text-gray-900"
             >
               <option value="all">Todos Status</option>
               <option value="completed">Concluídos</option>
               <option value="in_progress">Em Andamento</option>
-              <option value="pending">Pendentes</option>
+              <option value="pending">Em Análise</option>
               <option value="cancelled">Cancelados</option>
             </select>
+
+            {/* Filtro por mês */}
+            <select
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+              className="select-light min-w-[140px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white text-gray-900"
+            >
+              <option value="all">Todos Meses</option>
+              {monthOptions.map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </div>
+      </div>
+    </div>
+
+      {/* Resumo de Despesas do Mês Selecionado */}
+      {monthFilter !== 'all' && (
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center mb-3 sm:mb-0">
+            <div className="p-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 mr-3">
+              <DollarSign className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Despesa do mês {selectedMonthLabel}</p>
+              <p className="text-xl font-bold text-gray-900">R$ {formatCurrency(monthlyExpense)}</p>
+              <p className="text-xs text-gray-600">Serviços: {stats.total} • Concluídos: {stats.completed} • Em andamento: {stats.in_progress} • Em análise: {stats.pending} • Cancelados: {stats.cancelled}</p>
+            </div>
+          </div>
+          <div className="flex items-center">
+            <button
+              onClick={generateMonthlyReportPDF}
+              disabled={filteredServices.length === 0}
+              className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Exportar PDF
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Lista de Serviços */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -523,9 +649,9 @@ const Services = () => {
                             <select
                               value={service.paymentStatus}
                               onChange={(e) => handlePaymentStatusChange(service.id, e.target.value)}
-                              className="text-sm border-0 bg-transparent focus:ring-0 font-medium text-gray-900 cursor-pointer"
+                              className="select-light text-sm border-0 bg-white focus:ring-0 font-medium text-gray-900 cursor-pointer"
                             >
-                              <option value="pending">Pendente</option>
+                              <option value="pending">Em Análise</option>
                               <option value="in_progress">Em Andamento</option>
                               <option value="completed">Concluído</option>
                               <option value="cancelled">Cancelado</option>

@@ -153,7 +153,7 @@ const VehicleDetails = () => {
           {/* Informações Principais */}
           <div className="lg:col-span-2 space-y-6">
             {/* Informações do Veículo */}
-            <div className="card">
+            <div className="card card-light">
               <div className="card-header">
                 <h2 className="card-title flex items-center">
                   <Car className="h-5 w-5 mr-2" />
@@ -221,7 +221,7 @@ const VehicleDetails = () => {
             </div>
 
             {/* Documentação */}
-            <div className="card">
+            <div className="card card-light">
               <div className="card-header">
                 <h2 className="card-title flex items-center">
                   <FileText className="h-5 w-5 mr-2" />
@@ -241,7 +241,7 @@ const VehicleDetails = () => {
                       Licenciamento
                     </label>
                     <p className="text-brand-primary">
-                      {vehicle.licensing ? vehicle.licensing.split('-').reverse().join('/') : 'Não informado'}
+                      {vehicle.licensing_status || 'Não informado'}
                     </p>
                   </div>
                   <div>
@@ -249,7 +249,7 @@ const VehicleDetails = () => {
                       Seguro
                     </label>
                     <p className="text-brand-primary">
-                      {vehicle.insurance ? vehicle.insurance.split('-').reverse().join('/') : 'Não informado'}
+                      {vehicle.insurance_status || 'Não informado'}
                     </p>
                   </div>
                   <div>
@@ -257,7 +257,7 @@ const VehicleDetails = () => {
                       IPVA
                     </label>
                     <p className="text-brand-primary">
-                      {vehicle.ipva ? vehicle.ipva.split('-').reverse().join('/') : 'Não informado'}
+                      {vehicle.ipva_status || 'Não informado'}
                     </p>
                   </div>
                 </div>
@@ -265,7 +265,7 @@ const VehicleDetails = () => {
             </div>
 
             {/* Histórico de Serviços */}
-            <div className="card">
+            <div className="card card-light">
               <div className="card-header">
                 <h2 className="card-title flex items-center">
                   <Wrench className="h-5 w-5 mr-2" />
@@ -329,7 +329,7 @@ const VehicleDetails = () => {
           <div className="space-y-6">
             {/* Informações do Proprietário */}
             {vehicle.owner && (
-              <div className="card">
+              <div className="card card-light">
                 <div className="card-header">
                   <h2 className="card-title flex items-center">
                     <User className="h-5 w-5 mr-2" />
@@ -372,7 +372,7 @@ const VehicleDetails = () => {
             )}
 
             {/* Resumo Financeiro */}
-            <div className="card">
+            <div className="card card-light">
               <div className="card-header">
                 <h2 className="card-title flex items-center">
                   <DollarSign className="h-5 w-5 mr-2" />
@@ -383,16 +383,16 @@ const VehicleDetails = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total em Serviços:</span>
-                    <span className="font-medium">R$ {totalServiceCost.toFixed(2)}</span>
+                    <span className="font-medium text-brand-primary">R$ {totalServiceCost.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Número de Serviços:</span>
-                    <span className="font-medium">{vehicleServices.length}</span>
+                    <span className="font-medium text-brand-primary">{vehicleServices.length}</span>
                   </div>
                   {vehicleServices.length > 0 && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Média por Serviço:</span>
-                      <span className="font-medium">R$ {(totalServiceCost / vehicleServices.length).toFixed(2)}</span>
+                      <span className="font-medium text-brand-primary">R$ {(totalServiceCost / vehicleServices.length).toFixed(2)}</span>
                     </div>
                   )}
                 </div>
@@ -400,7 +400,7 @@ const VehicleDetails = () => {
             </div>
 
             {/* Próximas Manutenções */}
-            <div className="card">
+            <div className="card card-light">
               <div className="card-header">
                 <h2 className="card-title flex items-center">
                   <Calendar className="h-5 w-5 mr-2" />
@@ -420,7 +420,7 @@ const VehicleDetails = () => {
             </div>
 
             {/* Ações Rápidas */}
-            <div className="card">
+            <div className="card card-light">
               <div className="card-header">
                 <h2 className="card-title">Ações Rápidas</h2>
               </div>

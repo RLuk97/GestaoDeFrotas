@@ -2,18 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Car, Wrench, AlertTriangle, DollarSign, Plus, Calendar, FileText, Eye, Users, User, UserCheck, UserX, Gauge, CheckCircle, Clock, Trash2, Edit as EditIcon } from 'lucide-react';
 import apiService from '../services/api';
+import { useSettings } from '../context/SettingsContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
     totalVehicles: 0,
     activeVehicles: 0,
+    totalServices: 0,
     servicesInProgress: 0,
     totalClients: 0,
+    activeClients: 0,
     monthlyRevenue: 0,
     recentActivities: []
   });
   const [loading, setLoading] = useState(true);
+  const { settings } = useSettings();
 
   useEffect(() => {
     fetchDashboardData();
@@ -28,7 +32,7 @@ const Dashboard = () => {
         apiService.getVehicles(),
         apiService.getServices(),
         apiService.getClients(),
-        apiService.getRecentActivities(5)
+        apiService.getRecentActivities(Number(settings?.dashboardActivitiesLimit) || 5)
       ]);
 
       const vehicles = results[0].status === 'fulfilled' ? (results[0].value || []) : [];
@@ -42,13 +46,15 @@ const Dashboard = () => {
       // Calcular métricas
       const totalVehicles = vehicles.length;
       const activeVehicles = vehicles.filter(v => (v.status || '').toLowerCase() === 'active').length;
+      const totalServices = services.length;
+      // Alinhar com a página de Serviços: "Em Andamento" = paymentStatus === 'in_progress'
       const servicesInProgress = services.filter(service => 
-        service.paymentStatus === 'pending' || 
-        service.paymentStatus === 'in_progress'
+        String(service.paymentStatus || '').toLowerCase() === 'in_progress'
       ).length;
       
       // Total de clientes cadastrados
       const totalClients = clients.length;
+      const activeClients = clients.filter(c => String(c.status || '').toLowerCase() === 'active').length;
 
       // Despesa mensal - serviços concluídos no mês atual
       const currentMonth = new Date().getMonth();
@@ -79,8 +85,10 @@ const Dashboard = () => {
       setDashboardData({
         totalVehicles,
         activeVehicles,
+        totalServices,
         servicesInProgress,
         totalClients,
+        activeClients,
         monthlyRevenue: monthlyExpense,
         recentActivities
       });
@@ -91,8 +99,10 @@ const Dashboard = () => {
       setDashboardData({
         totalVehicles: 0,
         activeVehicles: 0,
+        totalServices: 0,
         servicesInProgress: 0,
         totalClients: 0,
+        activeClients: 0,
         monthlyRevenue: 0,
         recentActivities: []
       });
@@ -136,7 +146,7 @@ const Dashboard = () => {
       case 'in_progress':
         return 'Em Andamento';
       case 'pending':
-        return 'Pendente';
+        return 'Em Análise';
       case 'cancelled':
         return 'Cancelado';
       case 'created':
@@ -264,7 +274,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Serviços em Andamento */}
+        {/* Total de Serviços */}
         <div style={{
           backgroundColor: 'white',
           borderRadius: '16px',
@@ -291,7 +301,7 @@ const Dashboard = () => {
             color: '#64748b',
             margin: '0 0 8px 0'
           }}>
-            Serviços em Andamento
+            Total de Serviços
           </h3>
           <div style={{ 
             fontSize: '36px', 
@@ -299,13 +309,13 @@ const Dashboard = () => {
             color: '#1e293b',
             margin: '0 0 4px 0'
           }}>
-            {dashboardData.servicesInProgress}
+            {dashboardData.totalServices}
           </div>
           <div style={{ 
             fontSize: '12px', 
             color: '#94a3b8'
           }}>
-            Em execução
+            {dashboardData.servicesInProgress} em andamento
           </div>
         </div>
 
@@ -350,7 +360,7 @@ const Dashboard = () => {
             fontSize: '12px', 
             color: '#94a3b8'
           }}>
-            Cadastrados
+            {dashboardData.activeClients} ativos
           </div>
         </div>
 
@@ -477,6 +487,7 @@ const Dashboard = () => {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = 'none';
             }}
+            onClick={() => navigate('/vehicles?openModal=true')}
             >
               <Plus size={20} color="#ffffff" style={{ marginRight: '12px' }} />
               <div>
@@ -518,6 +529,7 @@ const Dashboard = () => {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = 'none';
             }}
+            onClick={() => navigate('/services?openModal=true')}
             >
               <Calendar size={20} color="#ffffff" style={{ marginRight: '12px' }} />
               <div>
@@ -559,6 +571,7 @@ const Dashboard = () => {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = 'none';
             }}
+            onClick={() => navigate('/activities')}
             >
               <FileText size={20} color="#ffffff" style={{ marginRight: '12px' }} />
               <div>
