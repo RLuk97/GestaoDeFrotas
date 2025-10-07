@@ -6,16 +6,12 @@ const API_BASE_URL = (() => {
   const envUrl = process.env.REACT_APP_API_URL;
   if (envUrl) return envUrl;
   if (isProd) {
-    // Ajuda de diagnóstico em produção quando a URL não está configurada
-    // Isso evita o erro genérico e orienta a configuração correta no Vercel.
-    // A base '/api' no Vercel normalmente resultará em "Service Unavailable".
-    // Configure REACT_APP_API_URL para o backend (ex.: https://<app>.up.railway.app/api).
-    // Mantemos '/api' como fallback para não quebrar o app, mas emitimos alerta.
+    // Em produção, nunca apontar para localhost. Use fallback '/api' e logue aviso.
     // eslint-disable-next-line no-console
-    console.warn('[ApiService] REACT_APP_API_URL não definido em produção. Configure a URL do backend (ex.: https://<app>.up.railway.app/api).');
+    console.warn('[ApiService] REACT_APP_API_URL não definido em produção. Usando fallback \'/api\'. Recomendo definir a URL do backend (ex.: https://<app>.up.railway.app/api).');
+    return '/api';
   }
-  // Desenvolvimento: usar alvo absoluto para evitar problemas de proxy
-  // Isso garante que as chamadas batam diretamente no backend local.
+  // Desenvolvimento: backend local
   return 'http://localhost:5000/api';
 })();
 
