@@ -147,22 +147,36 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
         serviceTypes.push(formData.customType.trim());
       }
       
+      // Mapear status de pagamento (frontend) para status aceito pelo backend
+      const statusMap = {
+        pending: 'Pendente',
+        in_progress: 'Em Andamento',
+        completed: 'Concluído',
+        cancelled: 'Cancelado'
+      };
+
+      // Montar payload conforme validações do backend
       const serviceData = {
         vehicle_id: formData.vehicleId,
         client_id: selectedVehicle?.client_id,
-        service_type: serviceTypes, // Enviar como array
-        description: formData.description,
+        // Backend espera string; enviar tipos como string separada por vírgula
+        service_type: Array.isArray(serviceTypes) ? serviceTypes.join(', ') : String(serviceTypes || ''),
         cost: parseFloat(formData.totalValue),
         service_date: formData.entryDate,
-        exit_date: formData.exitDate || null,
-        mileage: formData.mileage ? parseInt(formData.mileage) : null,
-        status: formData.paymentStatus === 'paid' ? 'Concluído' : 
-      formData.paymentStatus === 'partial' ? 'Em Andamento' : 'Em Análise',
-        mechanic: null,
-        parts_used: null,
-        labor_hours: 0
+        status: statusMap[formData.paymentStatus] || 'Pendente'
       };
-      
+
+      // Campos opcionais somente quando preenchidos (evitar validação em null)
+      if (formData.description && formData.description.trim()) {
+        serviceData.description = formData.description.trim();
+      }
+      if (formData.exitDate) {
+        serviceData.exit_date = formData.exitDate;
+      }
+      if (formData.mileage) {
+        serviceData.mileage = parseInt(formData.mileage, 10);
+      }
+
       onSubmit(serviceData);
     }
   };

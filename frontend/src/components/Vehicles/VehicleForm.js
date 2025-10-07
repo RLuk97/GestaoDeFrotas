@@ -135,6 +135,11 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
 
     // Cliente é opcional no cadastro de veículo
 
+    // Cor: permitir somente letras e espaços
+    if (formData.color && !/^[A-Za-zÀ-ÿ]+(?:\s[A-Za-zÀ-ÿ]+)*$/.test(formData.color)) {
+      newErrors.color = 'Cor deve conter somente letras (sem números ou símbolos)';
+    }
+
     // RENAVAM obrigatório: exatamente 11 dígitos numéricos
     if (!formData.renavam || !formData.renavam.trim()) {
       newErrors.renavam = 'RENAVAM é obrigatório';
@@ -221,8 +226,11 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
       // Permitir apenas dígitos e limitar a 11 caracteres
       const digitsOnly = value.replace(/\D/g, '').slice(0, 11);
       setFormData(prev => ({ ...prev, [name]: digitsOnly }));
-    }
-    else {
+    } else if (name === 'color') {
+      // Permitir apenas letras (inclui acentos) e espaços
+      const lettersOnly = value.replace(/[^A-Za-zÀ-ÿ\s]/g, '');
+      setFormData(prev => ({ ...prev, [name]: lettersOnly }));
+    } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
     
@@ -426,8 +434,15 @@ const VehicleForm = ({ vehicle, onSubmit, onCancel }) => {
             value={formData.color}
             onChange={handleChange}
             placeholder="Branco"
-            className="input-field input-light"
+            inputMode="text"
+            autoComplete="off"
+            pattern="^[A-Za-zÀ-ÿ ]+$"
+            title="Somente letras (sem números ou símbolos)"
+            className={`input-field input-light ${errors.color ? 'border-red-500 focus:ring-red-500' : ''}`}
           />
+          {errors.color && (
+            <p className="mt-1 text-sm text-red-600">{errors.color}</p>
+          )}
         </div>
 
         {/* Tipo de Combustível */}
