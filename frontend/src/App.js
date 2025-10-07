@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppWithNotifications } from './context/AppWithNotifications';
 import { SettingsProvider } from './context/SettingsContext';
 import Layout from './components/Layout/Layout';
+import ErrorBoundary from './components/Common/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
 import Vehicles from './pages/Vehicles';
 import Services from './pages/Services';
@@ -20,16 +21,16 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-            <Route path="/" element={<Layout><Dashboard /></Layout>} />
-            <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-            <Route path="/activities" element={<Layout><Activities /></Layout>} />
-            <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
-            <Route path="/vehicles" element={<Layout><Vehicles /></Layout>} />
-            <Route path="/vehicles/:id" element={<Layout><VehicleDetails /></Layout>} />
-            <Route path="/services" element={<Layout><Services /></Layout>} />
-            <Route path="/services/:id" element={<Layout><ServiceDetails /></Layout>} />
-            <Route path="/clients" element={<Layout><Clients /></Layout>} />
-            <Route path="/clients/:id/history" element={<Layout><ClientHistory /></Layout>} />
+            <Route path="/" element={<ErrorBoundary><Layout><Dashboard /></Layout></ErrorBoundary>} />
+            <Route path="/dashboard" element={<ErrorBoundary><Layout><Dashboard /></Layout></ErrorBoundary>} />
+            <Route path="/activities" element={<ErrorBoundary><Layout><Activities /></Layout></ErrorBoundary>} />
+            <Route path="/notifications" element={<ErrorBoundary><Layout><Notifications /></Layout></ErrorBoundary>} />
+            <Route path="/vehicles" element={<ErrorBoundary><Layout><Vehicles /></Layout></ErrorBoundary>} />
+            <Route path="/vehicles/:id" element={<ErrorBoundary><Layout><VehicleDetails /></Layout></ErrorBoundary>} />
+            <Route path="/services" element={<ErrorBoundary><Layout><Services /></Layout></ErrorBoundary>} />
+            <Route path="/services/:id" element={<ErrorBoundary><Layout><ServiceDetails /></Layout></ErrorBoundary>} />
+            <Route path="/clients" element={<ErrorBoundary><Layout><Clients /></Layout></ErrorBoundary>} />
+            <Route path="/clients/:id/history" element={<ErrorBoundary><Layout><ClientHistory /></Layout></ErrorBoundary>} />
             </Routes>
           </div>
         </Router>

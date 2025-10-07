@@ -65,6 +65,16 @@ Sistema completo para gestão de frotas e controle financeiro de oficinas automo
 - **PM2** - Gerenciador de processos Node.js
 - **SSL/TLS** - Certificados de segurança automáticos
 
+## 🚀 Deploy no Vercel (Produção)
+
+Para evitar telas em branco por falhas de API em produção, configure corretamente a URL do backend:
+
+- Defina a variável de ambiente `REACT_APP_API_URL` no projeto Vercel com a URL pública do backend (ex.: `https://seu-backend.com/api`).
+- Faça um redeploy após salvar a variável.
+- Caso a variável não esteja definida, o frontend usa o fallback `'/api'`. Isso requer que exista um proxy/rewrite configurado no Vercel apontando `'/api'` para seu backend.
+
+Além disso, o projeto inclui um `ErrorBoundary` que captura exceções inesperadas na UI e exibe uma tela amigável com opção de recarregar, evitando tela branca completa.
+
 ## 📦 Instalação
 
 ### Pré-requisitos
