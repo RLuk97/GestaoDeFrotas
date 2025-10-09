@@ -196,14 +196,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div style={{ 
-      padding: '24px',
-      backgroundColor: '#f8fafc',
-      height: '100vh',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
+    <div className="p-6 bg-gray-50 min-h-screen flex flex-col">
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
         <h1 style={{ 
@@ -223,12 +216,7 @@ const Dashboard = () => {
       </div>
 
       {/* Cards de Métricas */}
-      <div style={{ 
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '20px',
-        marginBottom: '32px'
-      }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         {/* Total de Veículos */}
         <div style={{
           backgroundColor: 'white',
