@@ -54,12 +54,7 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
   }
-  
-  /* Força esconder todos os scrollbars */
-  * {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-  }
+  /* Removido hide global de scrollbar para aparecer apenas quando necessário */
   
   *::-webkit-scrollbar {
     display: none; /* Chrome, Safari and Opera */

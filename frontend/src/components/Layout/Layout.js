@@ -383,9 +383,7 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
         </div>
 
         {/* Conteúdo da página */}
-        <main className={`pt-6 lg:pt-20 ${
-          isDashboard ? 'h-screen overflow-hidden' : 'min-h-screen overflow-y-auto scrollbar-hide'
-        }`}>
+        <main className={`pt-6 lg:pt-20 min-h-screen overflow-y-auto`}>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <Breadcrumb />
             {children}
