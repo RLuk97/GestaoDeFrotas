@@ -247,7 +247,7 @@ const Clients = () => {
           </div>
           
           {/* Filtros */}
-          <div className="flex space-x-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -392,7 +392,8 @@ const Clients = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* Tabela para md+ */}
+            <div className="overflow-x-auto hidden md:block">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50/50">
                   <tr>
@@ -481,6 +482,71 @@ const Clients = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Lista em cards para mobile */}
+            <div className="md:hidden space-y-3">
+              {paginatedClients.map((client) => (
+                <div key={client.id} className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
+                  <div className="flex items-center mb-3">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-semibold text-gray-900">{client.name}</p>
+                      <p className="text-xs text-gray-500">{client.document}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 text-sm text-gray-700">
+                    <div>
+                      <span className="text-gray-500">Email: </span>{client.email}
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Telefone: </span>{client.phone}
+                    </div>
+                    <div className="flex items-center">
+                      <div className="p-1.5 rounded-lg bg-gray-100 mr-2">
+                        <Car className="h-4 w-4 text-gray-600" />
+                      </div>
+                      <span className="font-medium text-gray-900">
+                        {getClientVehicles(client.id).length} veículo(s)
+                      </span>
+                    </div>
+                    <div>
+                      <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${
+                        client.status === 'active'
+                          ? 'bg-green-100 text-green-700 border border-green-200'
+                          : 'bg-red-100 text-red-700 border border-red-200'
+                      }`}>
+                        {client.status === 'active' ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex justify-end gap-2">
+                    <button
+                      onClick={() => openViewClient(client)}
+                      className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Ver detalhes"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleEditClient(client)}
+                      className="p-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
+                      title="Editar"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClient(client.id)}
+                      className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Paginação */}
