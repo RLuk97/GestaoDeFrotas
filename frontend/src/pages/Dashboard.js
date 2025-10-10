@@ -698,41 +698,66 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <style>
-        {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-          /* Ajustes responsivos para listas com rolagem em mobile */
-          @media (max-width: 640px) {
-            .quick-actions-list,
-            .recent-activities-list {
-              max-height: none !important;
-              overflow-y: visible !important;
-              padding-right: 0 !important;
-            }
-            /* Tornar itens das atividades em duas linhas no mobile */
-            .activity-item {
-              flex-direction: column !important;
-              align-items: flex-start !important;
-              min-height: auto !important;
-              gap: 6px !important;
-            }
-            .activity-meta {
-              width: 100% !important;
-              display: flex !important;
-              align-items: center !important;
-              justify-content: space-between !important;
-              text-align: left !important;
-              margin-top: 4px !important;
-            }
-            .activity-status-pill {
-              flex-shrink: 0 !important;
-            }
-          }
-        `}
-      </style>
+          <style>
+            {`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+              /* Ajustes responsivos para listas com rolagem em mobile */
+              @media (max-width: 640px) {
+                .quick-actions-list,
+                .recent-activities-list {
+                  max-height: none !important;
+                  overflow-y: visible !important;
+                  padding-right: 0 !important;
+                }
+                /* Tornar itens das atividades em duas linhas no mobile */
+                .activity-item {
+                  flex-direction: column !important;
+                  align-items: flex-start !important;
+                  min-height: auto !important;
+                  gap: 6px !important;
+                }
+                .activity-meta {
+                  width: 100% !important;
+                  display: flex !important;
+                  align-items: center !important;
+                  justify-content: space-between !important;
+                  text-align: left !important;
+                  margin-top: 4px !important;
+                }
+                .activity-status-pill {
+                  flex-shrink: 0 !important;
+                }
+              }
+              /* Ajustes responsivos para tablets (sidebar aberta reduz área útil) */
+              @media (max-width: 1024px) {
+                .recent-activities-list {
+                  max-height: none !important;
+                  overflow-y: visible !important;
+                  padding-right: 0 !important;
+                }
+                .activity-item {
+                  flex-direction: column !important;
+                  align-items: flex-start !important;
+                  min-height: auto !important;
+                  gap: 6px !important;
+                }
+                .activity-meta {
+                  width: 100% !important;
+                  display: flex !important;
+                  align-items: center !important;
+                  justify-content: space-between !important;
+                  text-align: left !important;
+                  margin-top: 4px !important;
+                }
+                .activity-status-pill {
+                  flex-shrink: 0 !important;
+                }
+              }
+            `}
+          </style>
     </div>
   );
 };

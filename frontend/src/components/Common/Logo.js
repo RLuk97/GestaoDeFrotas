@@ -10,9 +10,10 @@ const Logo = ({ size = 'default', className = '', showText = true, isExpanded = 
   return (
     <div className={`flex items-center ${className}`}>
       <img 
-        src="/images/logo-gestfrota.svg" 
+        src={process.env.PUBLIC_URL + '/images/logo-gestfrota.svg'} 
         alt="GestFrota Logo" 
         className={`${sizeClasses[size]}`}
+        onError={(e) => { e.currentTarget.src = process.env.PUBLIC_URL + '/favicon.svg'; }}
       />
       {showText && isExpanded && (
         <span className="ml-3 text-xl font-bold">
