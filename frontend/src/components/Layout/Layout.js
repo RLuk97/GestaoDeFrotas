@@ -377,7 +377,7 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
           <PageHeader 
             title={pageTitle || 'Gestão de Frota'} 
             subtitle={pageSubtitle}
-            showNotifications={settings.showNotifications}
+            showNotifications={false}
             onSettingsClick={() => setShowSettingsModal(true)}
           />
         </div>

@@ -469,7 +469,7 @@ const Services = () => {
           </div>
           
           {/* Filtros */}
-          <div className="flex space-x-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -550,8 +550,103 @@ const Services = () => {
           </div>
         ) : (
           <>
+            {/* Lista em cards para mobile */}
+            <div className="block md:hidden p-4">
+              {paginatedServices
+                .sort((a, b) => {
+                  const dateA = new Date(a.entryDate);
+                  const dateB = new Date(b.entryDate);
+                  if (isNaN(dateA) && isNaN(dateB)) return 0;
+                  if (isNaN(dateA)) return 1;
+                  if (isNaN(dateB)) return -1;
+                  return dateB - dateA;
+                })
+                .map((service) => {
+                  const vehicle = getVehicleById(service.vehicleId);
+                  const vehiclePlate = service.vehiclePlate || service.vehicle_license_plate || vehicle?.plate;
+                  const vehicleBrand = service.vehicleBrand || service.vehicle_brand || vehicle?.brand;
+                  const vehicleModel = service.vehicleModel || service.vehicle_model || vehicle?.model;
+                  return (
+                    <div key={service.id} className="bg-white border border-gray-200 rounded-xl shadow-sm mb-3 p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center">
+                          <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mr-3">
+                            <Car className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{vehiclePlate}</p>
+                            <p className="text-xs text-gray-500">{vehicleBrand} {vehicleModel}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(service.paymentStatus)}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            service.paymentStatus === 'completed' ? 'bg-green-100 text-green-800' :
+                            service.paymentStatus === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                            service.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {statusLabelPt(service.paymentStatus)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3">
+                        {Array.isArray(service.type) ? (
+                          <div className="flex flex-wrap gap-1">
+                            {service.type.map((type, index) => (
+                              <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {type}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-700">{service.type}</p>
+                        )}
+                        {service.mileage && (
+                          <p className="text-xs text-gray-500 mt-1">{service.mileage.toLocaleString()} km</p>
+                        )}
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="flex items-center text-xs text-gray-700">
+                          <Calendar className="h-4 w-4 text-gray-400 mr-1" />
+                          Entrada: {service.entryDate ? service.entryDate.split('-').reverse().join('/') : 'Data inválida'}
+                        </div>
+                        {service.exitDate && (
+                          <div className="flex items-center text-xs text-gray-700">
+                            <Calendar className="h-4 w-4 text-gray-400 mr-1" />
+                            Saída: {service.exitDate.split('-').reverse().join('/')}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <p className="text-sm font-semibold text-gray-900">R$ {(parseFloat(service.totalValue) || 0).toFixed(2)}</p>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            to={`/services/${service.id}`}
+                            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                            title="Ver detalhes"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                          <button
+                            onClick={() => handleEditService(service)}
+                            className="p-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-all duration-200"
+                            title="Editar"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="hidden md:table min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
