@@ -622,15 +622,19 @@ const Dashboard = () => {
           >
             {dashboardData.recentActivities.length > 0 ? (
               dashboardData.recentActivities.map((activity, index) => (
-                <div key={activity.id || index} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  minHeight: '60px',
-                  padding: '8px',
-                  backgroundColor: '#f9fafb',
-                  borderRadius: '8px',
-                  border: '1px solid #f3f4f6'
-                }}>
+                <div
+                  key={activity.id || index}
+                  className="activity-item"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    minHeight: '60px',
+                    padding: '8px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px',
+                    border: '1px solid #f3f4f6'
+                  }}
+                >
                   <div style={{
                     backgroundColor: '#f1f5f9',
                     padding: '8px',
@@ -643,7 +647,10 @@ const Dashboard = () => {
                     <div style={{ 
                       fontWeight: '500', 
                       color: '#1f2937',
-                      fontSize: '14px'
+                      fontSize: '14px',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'anywhere',
+                      whiteSpace: 'normal'
                     }}>
                       {activity.description}
                     </div>
@@ -657,8 +664,8 @@ const Dashboard = () => {
                       </div>
                     )}
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{
+                  <div className="activity-meta" style={{ textAlign: 'right' }}>
+                    <span className="activity-status-pill" style={{
                       padding: '4px 8px',
                       borderRadius: '4px',
                       fontSize: '10px',
@@ -704,6 +711,24 @@ const Dashboard = () => {
               max-height: none !important;
               overflow-y: visible !important;
               padding-right: 0 !important;
+            }
+            /* Tornar itens das atividades em duas linhas no mobile */
+            .activity-item {
+              flex-direction: column !important;
+              align-items: flex-start !important;
+              min-height: auto !important;
+              gap: 6px !important;
+            }
+            .activity-meta {
+              width: 100% !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: space-between !important;
+              text-align: left !important;
+              margin-top: 4px !important;
+            }
+            .activity-status-pill {
+              flex-shrink: 0 !important;
             }
           }
         `}
