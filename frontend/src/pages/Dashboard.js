@@ -408,8 +408,8 @@ const Dashboard = () => {
       {/* Seções Inferiores */}
       <div style={{ 
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-        gap: '24px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '16px'
       }}>
         {/* Ações Rápidas */}
         <div style={{
@@ -429,7 +429,7 @@ const Dashboard = () => {
           </h2>
           
           <div
-            className="scrollbar-hide"
+            className="quick-actions-list"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -610,7 +610,7 @@ const Dashboard = () => {
           </div>
           
           <div
-            className="scrollbar-hide"
+            className="recent-activities-list"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -696,6 +696,15 @@ const Dashboard = () => {
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+          }
+          /* Ajustes responsivos para listas com rolagem em mobile */
+          @media (max-width: 640px) {
+            .quick-actions-list,
+            .recent-activities-list {
+              max-height: none !important;
+              overflow-y: visible !important;
+              padding-right: 0 !important;
+            }
           }
         `}
       </style>
