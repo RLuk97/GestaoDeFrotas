@@ -392,14 +392,14 @@ const Services = () => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Gestão de Serviços</h1>
           <p className="text-gray-600">Controle de manutenções</p>
         </div>
         <button
           onClick={handleAddService}
-          className="inline-flex items-center px-4 py-2 bg-brand-primary hover:bg-slate-800 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+          className="inline-flex items-center px-4 py-2 bg-brand-primary hover:bg-slate-800 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 mt-4 sm:mt-0"
         >
           <Plus className="h-4 w-4 mr-2" />
           Novo Serviço

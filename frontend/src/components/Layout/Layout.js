@@ -64,57 +64,8 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
     }
   ];
 
-  // Módulos de upgrade futuro
+  // Módulos de upgrade futuro (apenas Peças e Histórico)
   const futureUpgradeNavigation = [
-    {
-      name: t('navigation.future.financeDashboard'),
-      href: '/rentals',
-      icon: DollarSign,
-      current: location.pathname.startsWith('/rentals'),
-      disabled: true
-    },
-    {
-      name: t('navigation.future.defaultReport'),
-      href: '/default-report',
-      icon: AlertTriangle,
-      current: location.pathname.startsWith('/default-report'),
-      disabled: true
-    },
-    {
-      name: t('navigation.future.paymentControl'),
-      href: '/payment-control',
-      icon: CreditCard,
-      current: location.pathname.startsWith('/payment-control'),
-      disabled: true
-    },
-    {
-      name: t('navigation.future.contractHistory'),
-      href: '/contract-history',
-      icon: FileText,
-      current: location.pathname.startsWith('/contract-history'),
-      disabled: true
-    },
-    {
-      name: t('navigation.future.transfers'),
-      href: '/vehicle-transfers',
-      icon: ArrowRightLeft,
-      current: location.pathname.startsWith('/vehicle-transfers'),
-      disabled: true
-    },
-    {
-      name: t('navigation.future.partialPayments'),
-      href: '/partial-payments',
-      icon: Receipt,
-      current: location.pathname.startsWith('/partial-payments'),
-      disabled: true
-    },
-    {
-      name: t('navigation.future.outstandingBalances'),
-      href: '/outstanding-balances',
-      icon: AlertCircle,
-      current: location.pathname.startsWith('/outstanding-balances'),
-      disabled: true
-    },
     {
       name: t('navigation.future.parts'),
       href: '/parts',
