@@ -81,7 +81,7 @@ const Activities = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-gray-900">Atividades</h1>
         <button
           className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
@@ -93,7 +93,7 @@ const Activities = () => {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <ActivityIcon className="h-5 w-5 text-blue-600" />
             <span className="font-medium text-gray-900">Todas as Atividades Recentes</span>
@@ -108,31 +108,31 @@ const Activities = () => {
         ) : activities.length === 0 ? (
           <div className="p-6 text-center text-gray-500">Nenhuma atividade encontrada</div>
         ) : (
-          <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto">
+          <div className="p-4 space-y-2 sm:max-h-[60vh] sm:overflow-y-auto">
             {activities.map((activity, idx) => (
               <div
                 key={activity.id || idx}
-                className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-md"
+                className="flex sm:flex-row flex-col sm:items-center p-3 bg-gray-50 border border-gray-200 rounded-md"
               >
                 <div className="bg-gray-100 p-2 rounded-full mr-3">
                   {getActivityIcon(activity)}
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">{activity.description}</div>
+                  <div className="text-sm font-medium text-gray-900 break-words whitespace-normal">{activity.description}</div>
                   {(activity.value || 0) > 0 && (
                     <div className="text-sm font-semibold mt-1" style={{ color: activity.status === 'deleted' ? '#ef4444' : '#16a34a' }}>
                       {activity.status === 'deleted' ? '-' : '+'} {formatCurrency(activity.value || 0)}
                     </div>
                   )}
                 </div>
-                <div className="text-right">
+                <div className="sm:text-right text-left sm:w-auto w-full flex items-center justify-between sm:block mt-2 sm:mt-0">
                   <span
                     className="inline-block px-2 py-1 rounded text-white text-xs font-semibold"
                     style={{ backgroundColor: getStatusColor(activity.status) }}
                   >
                     {getStatusText(activity.status)}
                   </span>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-gray-500 sm:mt-1">
                     {new Date(activity.date).toLocaleDateString('pt-BR')}
                   </div>
                 </div>

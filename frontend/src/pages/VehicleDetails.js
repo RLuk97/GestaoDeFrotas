@@ -116,7 +116,7 @@ const VehicleDetails = () => {
         </div>
 
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center space-x-4">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -127,7 +127,7 @@ const VehicleDetails = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:justify-end">
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(vehicle.status)}`}>
                 {getStatusText(vehicle.status)}
               </span>
@@ -277,7 +277,7 @@ const VehicleDetails = () => {
                   <div className="space-y-4">
                     {vehicleServices.map((service) => (
                       <div key={service.id} className="border border-brand-border rounded-lg p-4 hover:bg-brand-hover transition-colors">
-                        <div className="flex items-center justify-between">
+                        <div className="flex sm:flex-row flex-col sm:items-center justify-between">
                           <div className="flex-1">
                             <div className="font-medium text-brand-primary">
                               {Array.isArray(service.type) ? (
@@ -299,7 +299,7 @@ const VehicleDetails = () => {
                               {service.entryDate ? service.entryDate.split('-').reverse().join('/') : 'Data inválida'}
                             </p>
                           </div>
-                          <div className="text-right">
+                          <div className="sm:text-right text-left sm:w-auto w-full flex items-center justify-between sm:block mt-2 sm:mt-0">
                             <p className="font-medium text-brand-primary">R$ {(parseFloat(service.totalValue) || 0).toFixed(2)}</p>
                             <Link
                               to={`/services/${service.id}`}
@@ -360,7 +360,7 @@ const VehicleDetails = () => {
                         <label className="block text-sm font-medium text-brand-muted">
                           E-mail
                         </label>
-                        <p className="text-brand-primary flex items-center">
+                        <p className="text-brand-primary flex items-center break-words whitespace-normal">
                           <Mail className="h-4 w-4 mr-2 text-brand-muted" />
                           {vehicle.ownerEmail}
                         </p>
