@@ -355,11 +355,17 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
           name="status"
           value={formData.status}
           onChange={handleChange}
-          className="select-light w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue bg-white text-gray-900"
+          disabled={!client}
+          className={`select-light w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue bg-white text-gray-900 ${!client ? 'opacity-60 cursor-not-allowed' : ''}`}
         >
           <option value="active">Ativo</option>
           <option value="inactive">Inativo</option>
         </select>
+        {!client && (
+          <p className="text-xs text-gray-500 mt-1">
+            Novos clientes iniciam como <span className="font-semibold">Ativo</span>. Para alterar, edite o cliente.
+          </p>
+        )}
       </div>
 
       {/* Observações */}

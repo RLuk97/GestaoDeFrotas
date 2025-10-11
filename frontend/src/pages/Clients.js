@@ -62,7 +62,7 @@ const Clients = () => {
         addClientNotification({ ...clientData, name: clientData.name }, true); // true para indicar edição
       } else {
         // Criar novo cliente
-        const response = await ApiService.createClient(clientData);
+        const response = await ApiService.createClient({ ...clientData, status: 'active' });
         dispatch({ 
           type: 'ADD_CLIENT', 
           payload: {
