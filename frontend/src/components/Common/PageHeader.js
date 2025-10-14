@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Search, User, X, AlertTriangle, Wrench, DollarSign, FileText, Clock } from 'lucide-react';
 import { useNotifications } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
 
 const PageHeader = ({ title, subtitle, showSearch = false, showNotifications = true, showUserMenu = true }) => {
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuth();
   
   // Usar o contexto de notificações
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
@@ -146,16 +149,35 @@ const PageHeader = ({ title, subtitle, showSearch = false, showNotifications = t
 
             {/* Menu do usuário (sem engrenagem) */}
             {showUserMenu && (
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
+              <div className="relative">
+                <button
+                  type="button"
+                  className="flex items-center space-x-2 focus:outline-none"
+                  onClick={() => setShowUserDropdown((v) => !v)}
+                >
                   <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center">
                     <User className="h-4 w-4 text-white" />
                   </div>
-                  <div className="hidden md:block">
+                  <div className="hidden md:block text-left">
                     <p className="text-sm font-medium text-white">Administrador</p>
                     <p className="text-xs text-primary-100">Sistema</p>
                   </div>
-                </div>
+                </button>
+
+                {showUserDropdown && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => {
+                        setShowUserDropdown(false);
+                        logout();
+                        navigate('/login');
+                      }}
+                    >
+                      Sair
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

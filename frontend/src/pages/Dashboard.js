@@ -56,7 +56,9 @@ const Dashboard = () => {
       const totalClients = clients.length;
       const activeClients = clients.filter(c => String(c.status || '').toLowerCase() === 'active').length;
 
-      // Despesa mensal - serviços concluídos no mês atual
+      // Despesa mensal - alinhar com página de Serviços: soma de todos
+      // serviços do mês atual com base na data de entrada (entryDate),
+      // independentemente do status.
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
       const parseLocalYmd = (ymd) => {
@@ -66,16 +68,13 @@ const Dashboard = () => {
         return new Date(y, m - 1, d); // data local
       };
 
+      const currentKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
       const monthlyExpense = services
         .filter(service => {
-          const dateStr = service.exitDate || service.entryDate;
-          const serviceDate = parseLocalYmd(dateStr);
-          if (!serviceDate) return false;
-          return (
-            serviceDate.getMonth() === currentMonth &&
-            serviceDate.getFullYear() === currentYear &&
-            service.paymentStatus === 'completed'
-          );
+          const d = new Date(service.entryDate);
+          if (isNaN(d)) return false;
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          return key === currentKey;
         })
         .reduce((total, service) => total + (parseFloat(service.totalValue) || 0), 0);
 

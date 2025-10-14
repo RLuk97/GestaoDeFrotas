@@ -1,253 +1,118 @@
-# Sistema de Gestão de Frota e Finanças
+# GestFrota — Gestão de Frotas e Finanças
 
-## 📋 Descrição
+Sistema web para gestão de frotas, serviços e controle operacional, com backend em Node.js/Express e banco de dados PostgreSQL, e frontend em React com Tailwind CSS. Inclui autenticação, proteção de rotas, logs de atividades, módulos de clientes, veículos e serviços, e base para evolução financeira.
 
-Sistema completo para gestão de frotas e controle financeiro de oficinas automotivas, desenvolvido em React com Tailwind CSS. O sistema oferece funcionalidades abrangentes para gerenciamento de veículos, serviços, controle de pagamentos e análise financeira.
+## ✨ Módulos Atuais
 
-## ✨ Funcionalidades
+- Dashboard: visão geral de KPIs, serviços em andamento e atividades recentes.
+- Clientes: cadastro, edição, consulta e histórico do cliente.
+- Veículos: cadastro, listagem, detalhes, associação ao cliente e quilometragem.
+- Serviços: abertura, edição, filtro por status, mês e veículo; exportação em PDF.
+- Atividades: feed de atividades recentes (criação/atualização/remoção) com adaptação de status.
+- Notificações: área preparada para exibir eventos relevantes na UI.
+- Autenticação: login, logout, persistência de sessão e rotas protegidas.
 
-### 🚗 Gestão de Veículos
-- **Cadastro completo** de veículos com informações detalhadas
-- **Busca e filtros** avançados por placa, marca, modelo e proprietário
-- **Visualização detalhada** com histórico de serviços
-- **Edição e exclusão** de registros
-- **Controle de quilometragem** e observações
+## 🔐 Autenticação e Sessão
 
-### 🔧 Gestão de Serviços
-- **Registro de serviços** com descrição detalhada
-- **Controle de entrada e saída** de veículos
-- **Gestão de peças** utilizadas nos serviços
-- **Controle de pagamentos** (Pendente, Parcial, Pago)
-- **Cálculo automático** de valores e custos
-- **Histórico completo** por veículo
+- Login com persistência de sessão em `localStorage` e hidratação antes de proteger rotas.
+- `ProtectedRoute` aguarda `isLoading` do `AuthContext` antes de decidir redirecionar.
+- Logout disponível no cabeçalho dentro do menu “Administrador”.
 
-### 📊 Dashboard Inteligente
-- **Estatísticas em tempo real** da frota
-- **Resumo financeiro** com receitas e pendências
-- **Serviços em andamento** e alertas
-- **Gráficos e indicadores** de performance
-- **Visão geral** dos pagamentos pendentes
+## 🧩 Funcionalidades-Chave
 
-### 💰 Controle Financeiro
-- **Acompanhamento de receitas** por período
-- **Controle de pagamentos** pendentes
-- **Análise de custos** por serviço
-- **Relatórios financeiros** detalhados
+- CRUDs completos de Clientes, Veículos e Serviços.
+- Filtros e busca em listas (placa, marca, status, mês, veículo).
+- Exportação de lista de serviços em PDF (`jsPDF` + `autotable`).
+- Logs de atividades com normalização de status (completed/in_progress/pending/cancelled).
+- Interface responsiva com layout em grid e componentes Tailwind.
+
+## 📦 Módulos de Upgrade (Roadmap)
+
+- Peças/Estoque: catálogo, fornecedores e movimentação (nav presente como desativado).
+- Relatórios avançados: relatórios financeiros e operacionais com exportação.
+- Financeiro ampliado: conciliações, métodos de pagamento, saldos e cobranças.
+- Telemetria e manutenção preventiva: integração futura com rastreamento e agendamentos.
+- Multi-empresa e RBAC: perfis, papéis e permissões refinadas.
+- Sistema de Aluguéis (base já em migrações): contratos, mensalidades e status.
 
 ## 🛠️ Tecnologias Utilizadas
 
 ### Frontend
-- **React 18** - Biblioteca JavaScript para interfaces
-- **React Router DOM** - Roteamento e navegação
-- **Tailwind CSS** - Framework CSS utilitário
-- **Lucide React** - Biblioteca de ícones
-- **Date-fns** - Manipulação de datas
-- **Context API** - Gerenciamento de estado global
+- React 18, React Router v6.
+- Tailwind CSS com design tokens customizados (`brand-*`).
+- Context API para estado global (Auth, App, Settings, Notifications).
+- Lucide React (ícones) e `jsPDF`/`jspdf-autotable` para exportação.
+- Proxy de desenvolvimento para o backend (`setupProxy.js`).
 
-### Backend (Planejado)
-- **Node.js** - Runtime JavaScript para servidor
-- **Express.js** - Framework web minimalista e flexível
-- **JWT (JSON Web Tokens)** - Autenticação e autorização
-- **Bcrypt** - Criptografia de senhas
-- **Multer** - Upload de arquivos
-- **Cors** - Controle de acesso entre origens
-- **Helmet** - Segurança HTTP
+### Backend
+- Node.js + Express.
+- PostgreSQL via `pg` (pool de conexões e queries SQL). 
+- `express-validator`, `helmet`, `cors`, `morgan`, `compression`.
+- Migrations SQL em `backend/migrations` e seed em `backend/seeds`.
+- Observação: `sequelize` está disponível para uso futuro; modelos atuais usam SQL direto.
 
-### Banco de Dados (Planejado)
-- **PostgreSQL** - Banco de dados relacional robusto
-- **Prisma ORM** - Object-Relational Mapping moderno
-- **Redis** - Cache em memória para sessões e dados temporários
+## ⚙️ Desenvolvimento
 
-### DevOps & Deploy (Planejado)
-- **Vercel** - Deploy do frontend React
-- **Railway** - Deploy do backend Node.js
-- **Docker** - Containerização da aplicação backend
-- **PM2** - Gerenciador de processos Node.js
-- **SSL/TLS** - Certificados de segurança automáticos
+### Backend
+- Configurar `.env` (ver `backend/.env.example`).
+- Criar banco de dados (`gestao_frotas`).
+- Executar migrations: `npm run migrate` (padrão roda `001_create_tables.sql`; é possível passar outro arquivo como argumento).
+- Popular dados de exemplo (opcional): `npm run seed`.
+- Rodar servidor: `npm run dev` (porta padrão `5000`).
 
-## 🚀 Deploy no Vercel (Produção)
+### Frontend
+- `npm install` na pasta `frontend`.
+- `npm start` para desenvolvimento. A porta padrão é `3000`. Em ambientes locais pode variar (`PORT=3001 npm start`).
+- O frontend usa proxy para `http://localhost:5000/api` durante o desenvolvimento.
 
-Para evitar telas em branco por falhas de API em produção, configure corretamente a URL do backend:
+## 🔌 Integração Frontend ↔ Backend
 
-- Defina a variável de ambiente `REACT_APP_API_URL` no projeto Vercel com a URL pública do backend (ex.: `https://seu-backend.com/api`).
-- Faça um redeploy após salvar a variável.
-- Caso a variável não esteja definida, o frontend usa o fallback `'/api'`. Isso requer que exista um proxy/rewrite configurado no Vercel apontando `'/api'` para seu backend.
-
-Além disso, o projeto inclui um `ErrorBoundary` que captura exceções inesperadas na UI e exibe uma tela amigável com opção de recarregar, evitando tela branca completa.
-
-## 📦 Instalação
-
-### Pré-requisitos
-- Node.js (versão 16 ou superior)
-- npm ou yarn
-
-### Passos para instalação
-
-1. **Clone o repositório**
-```bash
-git clone <url-do-repositorio>
-cd "Gestão de Frotas e Finanças"
-```
-
-2. **Instale as dependências**
-```bash
-npm install
-```
-
-3. **Execute o projeto**
-```bash
-npm start
-```
-
-4. **Acesse o sistema**
-```
-http://localhost:3000
-```
-
-## 🏗️ Estrutura do Projeto
-
-```
-src/
-├── components/           # Componentes reutilizáveis
-│   ├── Common/          # Componentes comuns (Modal, Loading, etc.)
-│   ├── Layout/          # Layout principal e navegação
-│   ├── Services/        # Componentes específicos de serviços
-│   └── Vehicles/        # Componentes específicos de veículos
-├── context/             # Gerenciamento de estado global
-│   └── AppContext.js    # Context principal da aplicação
-├── pages/               # Páginas principais
-│   ├── Dashboard.js     # Painel principal
-│   ├── Vehicles.js      # Listagem de veículos
-│   ├── VehicleDetails.js # Detalhes do veículo
-│   ├── Services.js      # Listagem de serviços
-│   ├── ServiceDetails.js # Detalhes do serviço
-│   ├── Parts.js         # Gestão de peças (futuro)
-│   └── History.js       # Histórico completo (futuro)
-├── App.js               # Componente principal
-├── index.js             # Ponto de entrada
-└── index.css            # Estilos globais
-```
-
-## 🎨 Design System
-
-### Cores Principais
-- **Primária**: Azul (#3B82F6)
-- **Secundária**: Cinza (#6B7280)
-- **Sucesso**: Verde (#10B981)
-- **Aviso**: Amarelo (#F59E0B)
-- **Erro**: Vermelho (#EF4444)
-
-### Componentes Estilizados
-- **Botões**: Primário, Secundário, Perigo
-- **Cards**: Layout consistente com sombras
-- **Formulários**: Campos padronizados com validação
-- **Modais**: Overlay responsivo
-- **Badges**: Status coloridos
+- Proxy: requests do frontend para `'/api'` são redirecionadas ao backend.
+- Em produção, configure `REACT_APP_API_URL` com a URL pública do backend para evitar falhas.
+- Health check: `GET http://localhost:5000/api/health`.
 
 ## 📱 Responsividade
 
-O sistema é totalmente responsivo e otimizado para:
-- **Desktop** (1024px+)
-- **Tablet** (768px - 1023px)
-- **Mobile** (320px - 767px)
+- Layout em grid com duas colunas no desktop e coluna única em telas menores.
+- Tela de login responsiva: formulário centralizado e painel visual exibido a partir de `md`.
+- Tabelas com scroll e cards empilháveis em mobile.
+- Ações e botões touch-friendly.
 
-### Características Responsivas
-- Navegação lateral colapsável em mobile
-- Tabelas com scroll horizontal
-- Formulários adaptáveis
-- Cards empilháveis
-- Botões touch-friendly
+## 🏗️ Estrutura (resumo)
 
-## 🔄 Gerenciamento de Estado
+```
+frontend/
+  src/
+    App.js               # Rotas e ProtectedRoute
+    pages/               # Dashboard, Clients, Vehicles, Services, Details, Login
+    components/          # Layout, Common, Services, Vehicles
+    context/             # Auth, App, Settings, Notifications
+    utils/               # i18n, helpers
+    setupProxy.js        # Proxy dev → backend
 
-### Context API
-O sistema utiliza React Context para gerenciamento de estado global:
-
-```javascript
-// Estado principal
-{
-  vehicles: [],    // Lista de veículos
-  services: [],    // Lista de serviços
-  clients: [],     // Lista de clientes
-  parts: []        // Lista de peças
-}
-
-// Ações disponíveis
-- ADD_VEHICLE / UPDATE_VEHICLE / DELETE_VEHICLE
-- ADD_SERVICE / UPDATE_SERVICE / DELETE_SERVICE
-- ADD_CLIENT / UPDATE_CLIENT / DELETE_CLIENT
+backend/
+  config/database.js     # Pool PostgreSQL
+  migrations/            # SQL migrations (inclui aluguel, danos, pagamentos parciais)
+  routes/                # clients, vehicles, services, activities
+  models/                # mapeamentos para payload do frontend
+  seeds/                 # dados exemplo
+  server.js              # servidor Express
 ```
 
-### Funções Auxiliares
-- `getServicesInProgress()` - Serviços em andamento
-- `getPendingPayments()` - Pagamentos pendentes
-- `getVehicleServices(vehicleId)` - Serviços por veículo
-- `calculateTotalRevenue()` - Receita total
+## 🔐 Erros e Resiliência
 
-## 🧪 Dados de Exemplo
+- `ErrorBoundary` no frontend para capturar exceções e manter estabilidade.
+- Middleware de erros no backend com mensagens amigáveis e CORS seguro.
 
-O sistema vem com dados mockados para demonstração:
-- **5 veículos** de diferentes marcas e modelos
-- **7 serviços** com status variados
-- **Peças e componentes** associados
-- **Histórico financeiro** completo
+## 🚀 Deploy
 
-## 🚀 Funcionalidades Futuras
+- Frontend: Vercel (configurar `REACT_APP_API_URL`).
+- Backend: Railway/Render/Heroku equivalentes; usar `DATABASE_URL` com SSL em produção.
 
-### 📦 Módulo de Peças (v2.0)
-- Controle de estoque
-- Cadastro de fornecedores
-- Relatórios de movimentação
-- Integração com serviços
+---
 
-### 📈 Módulo de Histórico (v2.0)
-- Relatórios avançados
-- Exportação em PDF
-- Gráficos detalhados
-- Análise de tendências
-
-### 🔐 Sistema de Autenticação (v3.0)
-- Login de usuários
-- Controle de permissões
-- Auditoria de ações
-- Backup automático
-
-## 🎯 Padrões de Código
-
-### Clean Code
-- **Nomes descritivos** para variáveis e funções
-- **Componentes pequenos** e focados
-- **Separação de responsabilidades**
-- **Comentários explicativos** quando necessário
-
-### Estrutura de Componentes
-```javascript
-// Padrão de componente
-const ComponentName = ({ props }) => {
-  // 1. Hooks e estado
-  // 2. Funções auxiliares
-  // 3. Handlers de eventos
-  // 4. Render
-};
-```
-
-### Convenções
-- **PascalCase** para componentes
-- **camelCase** para funções e variáveis
-- **kebab-case** para arquivos CSS
-- **Imports organizados** por categoria
-
-## 🐛 Tratamento de Erros
-
-- **Validação de formulários** em tempo real
-- **Mensagens de erro** claras e específicas
-- **Estados de loading** durante operações
-- **Fallbacks** para dados não encontrados
-- **Confirmações** para ações destrutivas
-
-## 📊 Performance
-
-### Otimizações Implementadas
+### Observações
+- Este README reflete o estado atual do sistema e seu roadmap. Itens marcados como “upgrade” possuem base técnica em parte do backend (migrations e estrutura), e serão expostos na UI conforme evolução.
 - **Lazy loading** de componentes
 - **Memoização** de cálculos pesados
 - **Debounce** em campos de busca
@@ -282,7 +147,7 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 ## 👥 Equipe
 
-- **Desenvolvedor Principal**: [Seu Nome]
+- **Desenvolvedor Principal**: Ryan Lucas
 - **UI/UX Design**: Sistema próprio com Tailwind CSS
 - **Arquitetura**: React (Frontend) + Node.js/Express (Backend) + PostgreSQL (Database)
 
