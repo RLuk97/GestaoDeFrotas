@@ -20,11 +20,13 @@ import {
   Receipt,
   AlertCircle
 } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import Breadcrumb from '../Common/Breadcrumb';
 import PageHeader from '../Common/PageHeader';
 import Logo from '../Common/Logo';
 import SettingsModal from '../Common/SettingsModal';
 import { useSettings } from '../../context/SettingsContext';
+import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../utils/i18n';
 
 const Layout = ({ children, pageTitle, pageSubtitle }) => {
@@ -35,6 +37,7 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
   const location = useLocation();
   const isDashboard = location.pathname === '/' || location.pathname.startsWith('/dashboard');
   const { t } = useI18n();
+  const { logout } = useAuth();
 
   // Módulos ativos
   const activeNavigation = [
@@ -165,6 +168,18 @@ const Layout = ({ children, pageTitle, pageSubtitle }) => {
               );
             })}
           </nav>
+          {/* Rodapé com botão de logout (mobile) */}
+          <div className={`px-3 py-4 border-t ${sidebarExpanded ? 'bg-brand-background border-brand-border' : 'bg-gray-900 border-gray-800'}`}>
+            <button
+              type="button"
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+              onClick={() => { logout(); setSidebarOpen(false); }}
+              aria-label="Sair"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Sair</span>
+            </button>
+          </div>
         </div>
       </div>
 

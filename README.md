@@ -154,10 +154,7 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 ## 📞 Suporte
 
 Para suporte e dúvidas:
-- **Email**: suporte@gestaofrota.com
-- **Documentação**: [Link da documentação]
-- **Issues**: [Link do GitHub Issues]
-
+- **Email**: ryan.prog97@gmail.com
 ---
 
 **Desenvolvido para otimizar a gestão de frotas e oficinas automotivas.**
