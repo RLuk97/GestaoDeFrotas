@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useNotifications } from '../context/NotificationContext';
 import {
@@ -24,6 +24,8 @@ const Vehicles = () => {
   const { state, dispatch, getClientById } = useApp();
   const { addVehicleNotification, addVehicleDeleteNotification } = useNotifications();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [cameFromQuickAction, setCameFromQuickAction] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
@@ -37,6 +39,7 @@ const Vehicles = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.get('openModal') === 'true') {
+      setCameFromQuickAction(true);
       handleAddVehicle();
     }
   }, [location]);
@@ -449,6 +452,10 @@ const Vehicles = () => {
         onClose={() => {
           setShowForm(false);
           setEditingVehicle(null);
+          if (cameFromQuickAction) {
+            navigate('/dashboard');
+            setCameFromQuickAction(false);
+          }
         }}
         title={editingVehicle ? 'Editar Veículo' : 'Novo Veículo'}
       >
@@ -458,6 +465,10 @@ const Vehicles = () => {
           onCancel={() => {
             setShowForm(false);
             setEditingVehicle(null);
+            if (cameFromQuickAction) {
+              navigate('/dashboard');
+              setCameFromQuickAction(false);
+            }
           }}
         />
       </Modal>

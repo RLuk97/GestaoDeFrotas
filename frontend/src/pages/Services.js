@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useNotifications } from '../context/NotificationContext';
 import {
@@ -27,6 +27,8 @@ const Services = () => {
   const { addServiceNotification } = useNotifications();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [cameFromQuickAction, setCameFromQuickAction] = useState(false);
   
   // Debug logs
   console.log('=== Services Debug ===');
@@ -51,6 +53,7 @@ const Services = () => {
     console.log('urlParams.get("openModal"):', urlParams.get('openModal'));
     if (urlParams.get('openModal') === 'true') {
       console.log('Abrindo modal automaticamente');
+      setCameFromQuickAction(true);
       handleAddService();
       // Evitar reabertura do modal ao atualizar estado
       const params = new URLSearchParams(location.search);
@@ -854,6 +857,7 @@ const Services = () => {
       <Modal
         isOpen={showForm}
         onClose={() => {
+          const originVehicleId = searchParams.get('vehicle');
           setShowForm(false);
           setEditingService(null);
           // Limpar parâmetros da URL ao fechar o modal
@@ -862,6 +866,14 @@ const Services = () => {
           params.delete('openModal');
           setSearchParams(params);
           setVehicleFilter('all');
+          if (cameFromQuickAction) {
+            if (originVehicleId) {
+              navigate(`/vehicles/${originVehicleId}`);
+            } else {
+              navigate('/dashboard');
+            }
+            setCameFromQuickAction(false);
+          }
         }}
         title={editingService ? 'Editar Serviço' : 'Novo Serviço'}
         size="lg"
@@ -870,6 +882,7 @@ const Services = () => {
           service={editingService}
           onSubmit={handleFormSubmit}
           onCancel={() => {
+            const originVehicleId = searchParams.get('vehicle');
             setShowForm(false);
             setEditingService(null);
             // Limpar parâmetros da URL ao cancelar
@@ -878,6 +891,14 @@ const Services = () => {
             params.delete('openModal');
             setSearchParams(params);
             setVehicleFilter('all');
+            if (cameFromQuickAction) {
+              if (originVehicleId) {
+                navigate(`/vehicles/${originVehicleId}`);
+              } else {
+                navigate('/dashboard');
+              }
+              setCameFromQuickAction(false);
+            }
           }}
           preselectedVehicleId={(() => {
             const preselectedId = vehicleFilter !== 'all' ? vehicleFilter : 
