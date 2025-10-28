@@ -28,8 +28,13 @@ const clientValidation = [
     .withMessage('Email deve ser válido'),
   body('phone')
     .optional()
-    .isMobilePhone('pt-BR')
-    .withMessage('Telefone deve ser válido'),
+    .custom((value) => {
+      const digits = String(value).replace(/\D/g, '');
+      if (digits.length !== 10 && digits.length !== 11) {
+        throw new Error('Telefone deve conter DDD + número com 10 ou 11 dígitos');
+      }
+      return true;
+    }),
   body('document')
     .notEmpty()
     .withMessage('CPF/CNPJ é obrigatório')

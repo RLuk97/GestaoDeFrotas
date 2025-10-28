@@ -46,8 +46,12 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
       newErrors.email = 'Email inválido';
     }
 
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Telefone é obrigatório';
+    // Telefone é opcional
+    if (formData.phone && formData.phone.trim()) {
+      const phoneDigits = formData.phone.replace(/\D/g, '');
+      if (phoneDigits.length !== 10 && phoneDigits.length !== 11) {
+        newErrors.phone = 'Telefone deve conter DDD + número com 10 ou 11 dígitos';
+      }
     }
 
     if (!formData.document.trim()) {
@@ -59,20 +63,32 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
       }
     }
 
-    if (!formData.address.trim()) {
-      newErrors.address = 'Endereço é obrigatório';
-    }
-
-    if (!formData.city.trim()) {
-      newErrors.city = 'Cidade é obrigatória';
-    }
-
-    if (!formData.state.trim()) {
-      newErrors.state = 'Estado é obrigatório';
-    }
+    // Endereço, cidade e estado são opcionais
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const formatPhone = (value) => {
+    // Remove tudo que não é dígito e limita a 11 dígitos
+    const cleaned = value.replace(/\D/g, '').slice(0, 11);
+
+    // Formato fixo: (XX) XXXX-XXXX quando houver até 10 dígitos
+    if (cleaned.length <= 10) {
+      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+
+    // Formato celular: (XX) XXXXX-XXXX para 11 dígitos
+    return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  };
+
+  const handlePhoneChange = (e) => {
+    const formatted = formatPhone(e.target.value);
+    setFormData(prev => ({ ...prev, phone: formatted }));
+
+    if (errors.phone) {
+      setErrors(prev => ({ ...prev, phone: '' }));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -98,16 +114,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
     }
   };
 
-  const formatPhone = (value) => {
-    // Remove tudo que não é dígito
-    const cleaned = value.replace(/\D/g, '');
-    
-    // Aplica a máscara (XX) XXXXX-XXXX
-    if (cleaned.length <= 11) {
-      return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-    }
-    return value;
-  };
+  // formatPhone duplicado removido (utilizar a versão acima que suporta 10/11 dígitos)
 
   const formatDocument = (value) => {
     // Remove tudo que não é dígito e limita a 14 dígitos
@@ -144,10 +151,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
     return cleaned.replace(/(\d{5})(\d{3})/, '$1-$2');
   };
 
-  const handlePhoneChange = (e) => {
-    const formatted = formatPhone(e.target.value);
-    setFormData(prev => ({ ...prev, phone: formatted }));
-  };
+  // handlePhoneChange duplicado removido (utilizar a versão acima que limpa erros)
 
   const handleDocumentChange = (e) => {
     const formatted = formatDocument(e.target.value);
@@ -206,7 +210,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
 
         <div>
           <label htmlFor="phone" className="block text-sm font-semibold text-brand-primary mb-1">
-            Telefone *
+            Telefone
           </label>
           <input
             type="text"
@@ -247,7 +251,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
       {/* Endereço */}
       <div>
         <label htmlFor="address" className="block text-sm font-semibold text-brand-primary mb-1">
-          Endereço *
+          Endereço
         </label>
         <input
           type="text"
@@ -267,7 +271,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label htmlFor="city" className="block text-sm font-semibold text-brand-primary mb-1">
-            Cidade *
+            Cidade
           </label>
           <input
             type="text"
@@ -285,7 +289,7 @@ const ClientForm = ({ client, onSubmit, onCancel }) => {
 
         <div>
           <label htmlFor="state" className="block text-sm font-semibold text-brand-primary mb-1">
-            Estado *
+            Estado
           </label>
           <select
             id="state"

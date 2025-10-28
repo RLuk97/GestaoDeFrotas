@@ -138,6 +138,15 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
     if (validateForm()) {
       // Buscar o veículo selecionado para obter o client_id
       const selectedVehicle = state.vehicles.find(v => v.id === formData.vehicleId);
+
+      // Bloquear envio se o veículo não tiver cliente associado
+      if (!selectedVehicle || !selectedVehicle.client_id) {
+        setErrors(prev => ({
+          ...prev,
+          vehicleId: 'Veículo selecionado não possui cliente associado. Associe um cliente ao veículo antes de abrir o serviço.'
+        }));
+        return;
+      }
       
       // Processar tipos de serviço
       let serviceTypes = [...formData.type];
@@ -158,7 +167,7 @@ const ServiceForm = ({ service, onSubmit, onCancel, preselectedVehicleId }) => {
       // Montar payload conforme validações do backend
       const serviceData = {
         vehicle_id: formData.vehicleId,
-        client_id: selectedVehicle?.client_id,
+        client_id: selectedVehicle.client_id,
         // Backend espera string; enviar tipos como string separada por vírgula
         service_type: Array.isArray(serviceTypes) ? serviceTypes.join(', ') : String(serviceTypes || ''),
         cost: parseFloat(formData.totalValue),

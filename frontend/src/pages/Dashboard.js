@@ -215,15 +215,16 @@ const Dashboard = () => {
       </div>
 
       {/* Cards de Métricas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
         {/* Total de Veículos */}
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '20px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-          border: '1px solid #f1f5f9',
-          textAlign: 'center'
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        padding: '20px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+        border: '1px solid #f1f5f9',
+        textAlign: 'center',
+        minWidth: 0
         }}>
           <div style={{
             width: '60px',
@@ -263,12 +264,13 @@ const Dashboard = () => {
 
         {/* Total de Serviços */}
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '20px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-          border: '1px solid #f1f5f9',
-          textAlign: 'center'
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        padding: '20px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+        border: '1px solid #f1f5f9',
+        textAlign: 'center',
+        minWidth: 0
         }}>
           <div style={{
             width: '60px',
@@ -308,12 +310,13 @@ const Dashboard = () => {
 
         {/* Total de Clientes */}
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '20px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-          border: '1px solid #f1f5f9',
-          textAlign: 'center'
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        padding: '20px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+        border: '1px solid #f1f5f9',
+        textAlign: 'center',
+        minWidth: 0
         }}>
           <div style={{
             width: '60px',
@@ -353,12 +356,13 @@ const Dashboard = () => {
 
         {/* Despesa do Mês */}
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '20px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-          border: '1px solid #f1f5f9',
-          textAlign: 'center'
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        padding: '20px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+        border: '1px solid #f1f5f9',
+        textAlign: 'center',
+        minWidth: 0
         }}>
           <div style={{
             width: '60px',
