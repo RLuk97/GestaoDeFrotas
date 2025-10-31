@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Gauge } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 // Removido Logo do formulário para atender solicitação de retirar o ícone da parte de login
 
@@ -87,7 +87,12 @@ const Login = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-brand-primary via-slate-800 to-brand-primary" />
         <div className="absolute inset-0 opacity-60 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-700 via-primary-600 to-slate-800" />
         <div className="relative flex flex-col items-center text-center">
-          <Gauge className="h-16 w-16 text-primary-300 mb-3" />
+          <img
+            src={process.env.PUBLIC_URL + '/images/LOGOGEST.svg'}
+            alt="GestFrota Logo"
+            className="h-16 w-16 mb-3"
+            onError={(e) => { e.currentTarget.src = process.env.PUBLIC_URL + '/images/LOGOGEST.svg'; }}
+          />
           <p className="text-xl md:text-1xl lg:text-2xl font-bold text-primary-100">Bem-vindo</p>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
             <span className="text-black">Gest</span>
